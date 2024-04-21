@@ -1,0 +1,10 @@
+[package]
+name = "digital_engine_logic"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+derive_more = "0.99.17"
+digital_engine_module_loader.path = "../module_loader"
+
+

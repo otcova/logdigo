@@ -1,0 +1,24 @@
+color = "green"
+
+[block.Constant]
+lable = "<X>"
+output = "cable<C>"
+constant.X = { max_bits = "C" }
+
+[block.SetResetLatch]
+lable = "Latch"
+input = ["cable set", "cable reset"]
+output = "cable"
+state = true
+
+[block.Register]
+lable = "Register"
+input = ["cable data", "wire write"]
+output = "cable"
+state = true
+
+[block.RAM]
+lable = "RAM"
+input = ["cable<D> data", "cable<A> address", "wire write"]
+output = "cable<D>"
+state = true

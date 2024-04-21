@@ -1,0 +1,46 @@
+color = "blue"
+
+[block.Not]
+lable = "Not"
+input = "cable"
+output = "cable"
+
+[block.And]
+lable = "&"
+input = "bundle"
+output = "cable"
+
+[block.Or]
+lable = "Or"
+input = "bundle"
+output = "cable"
+
+[block.XOr]
+lable = "XOr"
+input = "bundle"
+output = "cable"
+
+[block.Equal]
+lable = "="
+input = "bundle"
+output = "wire"
+
+[block.LessThan]
+lable = "<"
+input = ["cable", "cable"]
+output = "wire"
+
+[block.LessOrEqual]
+lable = "<="
+input = ["cable", "cable"]
+output = "wire"
+
+[block.IntLessThan]
+lable = "int <"
+input = ["cable", "cable"]
+output = "wire"
+
+[block.IntLessOrEqual]
+lable = "int <="
+input = ["cable", "cable"]
+output = "wire"

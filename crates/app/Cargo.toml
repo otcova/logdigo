@@ -1,0 +1,9 @@
+[package]
+name = "digital_engine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+derive_more = "0.99.17"
+digital_engine_painter.path = "../painter"
+digital_engine_logic.path = "../logic"

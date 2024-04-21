@@ -1,0 +1,47 @@
+
+[[chapter]]
+title = "Allways Powered"
+allow = ["Not"]
+unlock = ["Not"]
+
+inputs = []
+outputs = ["r"]
+
+[chapter.truth_table]
+format = "$r = 1"
+table = [{r = 0}, {r = 1}]
+
+[[chapter]]
+title = "And"
+allow = ["Or"]
+unlock = ["And"]
+
+inputs = ["a", "b"]
+outputs = ["r"]
+
+[chapter.truth_table]
+format = "$a or $b = $r"
+function = "And"
+
+[[chapter]]
+title = "Or"
+unlock = ["Or"]
+
+inputs = ["a", "b"]
+outputs = ["r"]
+
+[chapter.truth_table]
+format = "$a or $b = $r"
+function = "Or"
+
+[[chapter]]
+title = "Equal"
+unlock = ["Equal"]
+
+inputs = ["a", "b"]
+outputs = ["r"]
+
+[chapter.truth_table]
+format = "($a == $b) = $r"
+function = "Equal"
+

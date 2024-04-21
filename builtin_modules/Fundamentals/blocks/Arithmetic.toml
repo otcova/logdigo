@@ -1,0 +1,29 @@
+color = "red"
+
+[block.Add]
+lable = "+"
+input = "bundle<B, I>"
+output = "cable<S> sum"
+constant.S = { min = "I" }
+
+[block.Sub]
+lable = "-"
+input = ["cable", "cable sub"]
+output = ["cable diff", "wire sign"]
+
+[block.Mul]
+lable = "x"
+input = ["bundle<B, I>"]
+output = "cable<P> prod"
+constant.P = { min = "I" }
+
+[block.Div]
+lable = "/"
+input = ["cable<C>", "cable<D> divisor"]
+output = "cable<R>"
+
+[block.Mod]
+lable = "mod"
+input = ["cable<C>", "cable<D> divisor"]
+output = "cable<R>"
+

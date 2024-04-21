@@ -1,0 +1,48 @@
+requirements = ["Binary"]
+
+[[chapter]]
+title = "Half Adder"
+unlock = "Adder[1]"
+
+inputs = ["a", "b"]
+outputs = ["sum", "carry"]
+
+[chapter.truth_table]
+format = "$a + $b = $carry$sum"
+function = "HalfAdder"
+
+[[chapter]]
+title = "Full Adder"
+unlock = "CarryAdder[1]"
+
+inputs = ["a", "b", "c"]
+outputs = ["sum", "carry"]
+
+[chapter.truth_table]
+format = "$a + $b + $c = $carry$sum"
+function = "FullAdder"
+
+[[chapter]]
+title = "Addition"
+unlock = ["Adder", "CarryAdder"]
+
+inputs = ["a[4]", "b[4]"]
+outputs = "sum[5]"
+
+[chapter.truth_table]
+format = "$a + $b = $sum"
+function = "Adder"
+
+[[chapter]]
+title = "Subtraction"
+unlock = ["Subtractor"]
+
+inputs = ["a[4]", "b[4]"]
+outputs = ["difference[4]", "sign"]
+
+[chapter.truth_table]
+format = "$a - $b = $sign $difference"
+function = "Subtractor"
+
+
+
