@@ -1,9 +1,9 @@
-/// Index of `ModuleInfo::used_blocks`
-pub struct BlockTemplateId(usize);
+use crate::*;
 
 pub struct BlockTemplate {
     pub name: String,
     pub lable: String,
+    pub group: String,
     pub inputs: Vec<BlockPinTemplate>,
     pub outputs: Vec<BlockPinTemplate>,
     pub logic: Option<BlockLogic>,

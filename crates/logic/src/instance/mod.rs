@@ -1,4 +1,5 @@
 use crate::*;
+use digital_engine_module_loader::Vec2;
 
 pub struct Module {
     pub info: ModuleInfo,
