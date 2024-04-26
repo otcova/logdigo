@@ -1,15 +1,15 @@
 use crate::*;
 
-pub struct BlockTemplate {
-    pub name: String,
+pub struct BlockDesc {
+    pub id: BlockDescId,
     pub lable: String,
     pub group: String,
-    pub inputs: Vec<BlockPinTemplate>,
-    pub outputs: Vec<BlockPinTemplate>,
+    pub inputs: Vec<BlockPinDesc>,
+    pub outputs: Vec<BlockPinDesc>,
     pub logic: Option<BlockLogic>,
 }
 
-pub struct BlockPinTemplate {
+pub struct BlockPinDesc {
     pub pin_type: PinTypeTemplate,
     pub lable: String,
 }

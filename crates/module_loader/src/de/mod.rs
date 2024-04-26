@@ -96,9 +96,9 @@ fn iter_manifests_from_folder<M: DeserializeOwned>(
     Ok(iter)
 }
 
-impl Chapter {
+impl ChapterDesc {
     fn from_manifest(module: &Module, manifest: ChapterManifest) -> Result<Self> {
-        Ok(Chapter {
+        Ok(ChapterDesc {
             title: manifest.title,
             allowed_blocks: manifest
                 .allowed_blocks
@@ -110,27 +110,27 @@ impl Chapter {
     }
 }
 
-impl Book {
+impl BookDesc {
     fn from_manifest(module: &Module, title: String, manifest: BookManifest) -> Result<Self> {
-        Ok(Book {
+        Ok(BookDesc {
             title,
             chapters: manifest
                 .chapters
                 .into_iter()
-                .map(|chap_man| Chapter::from_manifest(module, chap_man))
+                .map(|chap_man| ChapterDesc::from_manifest(module, chap_man))
                 .collect::<Result<_>>()?,
         })
     }
 }
 
-impl BlockTemplate {
+impl BlockDesc {
     fn from_manifest(
         group_name: impl Into<String>,
         group_color: impl Into<String>,
         block_name: String,
         block: BlockManifest,
     ) -> Result<Self> {
-        Ok(BlockTemplate {
+        Ok(BlockDesc {
             name: block_name,
             group: group_name.into(),
             lable: block.lable,
@@ -142,10 +142,10 @@ impl BlockTemplate {
 }
 
 impl Module {
-    fn get_block_id(&self, name: &str) -> Result<BlockTemplateId> {
+    fn get_block_id(&self, name: &str) -> Result<BlockDescId> {
         for (idx, block) in self.blocks.iter().enumerate() {
             if block.name == name {
-                return Ok(BlockTemplateId(idx));
+                return Ok(BlockDescId(idx));
             }
         }
         Err(ModError::from("fgr").into())
@@ -170,14 +170,14 @@ impl Module {
 
             for (block_name, block_man) in group.blocks {
                 let block =
-                    BlockTemplate::from_manifest(&group_name, &group.color, block_name, block_man)?;
+                    BlockDesc::from_manifest(&group_name, &group.color, block_name, block_man)?;
                 module.blocks.push(block);
             }
         }
 
         for book_manifest in BookManifest::from_mod_path(&mod_path)? {
             let (title, book_manifest) = book_manifest?;
-            let book = Book::from_manifest(&module, title, book_manifest)?;
+            let book = BookDesc::from_manifest(&module, title, book_manifest)?;
             module.books.push(book);
         }
 
