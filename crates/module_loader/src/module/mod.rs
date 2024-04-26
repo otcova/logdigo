@@ -1,48 +1,48 @@
 mod block;
-mod description;
 mod id;
+mod local_modules;
 mod solution;
 
-use std::{collections::HashMap, path::PathBuf};
-
 pub use block::*;
-pub use description::*;
 pub use id::*;
+pub use local_modules::*;
 pub use solution::*;
 
-pub struct LocalModules {
-    modules_path: PathBuf,
-    chapters_status: HashMap<ChapterId, ChapterCompletionStatus>,
-}
+use std::collections::HashMap;
 
-pub struct ModuleSummary {
+pub struct Module {
     pub id: ModuleId,
-    pub chapters: u32,
-    pub completed_chapters: u32,
+    pub description: String,
+    pub author: Vec<String>,
+    pub blocks: HashMap<String, BlockDesc>,
+    books: HashMap<String, Book>,
 }
 
-impl LocalModules {
-    pub fn load() -> Self {
-        todo!()
-    }
+pub struct Book {
+    pub id: BookId,
+    chapters: Vec<Chapter>,
+}
 
-    /// Get the title and completion ratio of each local module
-    pub fn summary_modules(&self) -> impl Iterator<Item = ModuleSummary> {
-        todo!()
-    }
+pub struct Chapter {
+    pub id: ChapterId,
+    pub completion_status: ChapterCompletionStatus,
+    pub allowed_blocks: Vec<BlockDescIndex>,
+}
 
-    /// Get the books and chapters of one module.
-    pub fn load_module() -> Module {
-        todo!()
+impl Module {
+    pub fn get_book(&self, book_id: &BookId) -> &Book {
+        if self.id != book_id.module_id {
+            panic!("Invalid BookId. Requesting a book of a diferent module");
+        }
+        &self.books[&book_id.title]
     }
-
-    pub fn load_module_solution() -> ModuleSolution {
-        todo!()
+    pub fn iter_books(&self) -> impl Iterator<Item = &Book> {
+        self.books.values()
     }
+}
 
-    /// If a previous solution exists, then it is loaded and returned.
-    /// If not, a new one is created.
-    pub fn load_chapter_solution(&self, id: ChapterId) -> ChapterSolution {
-        todo!()
+impl Book {
+    pub fn iter_chapters(&self) -> impl Iterator<Item = &Chapter> {
+        self.chapters.iter()
     }
 }
