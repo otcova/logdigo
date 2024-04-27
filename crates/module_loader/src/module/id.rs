@@ -16,6 +16,8 @@ pub struct ChapterId {
     pub title: String,
 }
 
-/// Index of `Module::blocks`
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct BlockDescIndex(pub usize);
+pub struct BlockDescId {
+    pub module_id: ModuleId,
+    pub name: String,
+}

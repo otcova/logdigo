@@ -1,9 +1,16 @@
 [package]
-name = "logdigo"
+name = "digolog_app"
 version = "0.1.0"
 edition = "2021"
 
+[dependencies.wgpu]
+version = "0.19"
+deafult-features = false
+
+[dependencies.winit]
+git = "https://github.com/rust-windowing/winit"
+deafult-features = false
+
 [dependencies]
+async-std = "1.12"
 derive_more = "0.99.17"
-digital_engine_painter.path = "../painter"
-digital_engine_logic.path = "../logic"

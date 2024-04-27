@@ -26,7 +26,7 @@ pub struct Book {
 pub struct Chapter {
     pub id: ChapterId,
     pub completion_status: ChapterCompletionStatus,
-    pub allowed_blocks: Vec<BlockDescIndex>,
+    pub allowed_blocks: Vec<BlockDescId>,
 }
 
 impl Module {

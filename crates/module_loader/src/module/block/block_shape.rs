@@ -1,9 +1,9 @@
 use crate::*;
 
-/// Instance of a BlockTemplate
+/// Instance of a BlockDesc
 pub struct BlockShape {
+    pub description: BlockDescId,
     pub lable: String,
-    pub template: BlockDescId,
     pub inputs: Vec<BlockCable>,
     pub outputs: Vec<BlockCable>,
 }

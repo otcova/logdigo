@@ -18,10 +18,10 @@ impl LocalModules {
         todo!()
     }
 
-    /// Get the title and completion ratio of each local module
-    pub fn summary_modules(&self) -> impl Iterator<Item = ModuleSummary> {
-        todo!()
-    }
+    // /// Get the title and completion ratio of each local module
+    // pub fn summary_modules(&self) -> impl Iterator<Item = ModuleSummary> {
+    //     todo!()
+    // }
 
     /// Get the books and chapters of one module.
     pub fn load_module() -> Module {

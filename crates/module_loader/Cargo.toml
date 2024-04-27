@@ -1,5 +1,5 @@
 [package]
-name = "digital_engine_module_loader"
+name = "digolog_module_loader"
 version = "0.1.0"
 edition = "2021"
 

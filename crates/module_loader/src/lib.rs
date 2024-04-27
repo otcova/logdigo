@@ -2,9 +2,6 @@
 
 //! # Expected use cases
 //!
-//! ## Get local (installed) modules
-//! It will read files and cache some information.
-//! This should be done once per aplication.
 //! ```
 //! let local_modules = LocalModules::load();
 //!
@@ -26,12 +23,10 @@
 //! ```
 //!
 
-mod de;
-mod error;
+// mod de;
 mod math;
 mod module;
 
-pub use de::*;
-pub use error::*;
+// pub use de::*;
 pub use math::*;
 pub use module::*;

@@ -1,10 +1,9 @@
 [package]
-name = "digolog_logic"
+name = "digolog"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 derive_more = "0.99.17"
-digolog_module_loader.path = "../module_loader"
-
-
+digolog_app.path = "../app"
+digolog_logic.path = "../logic"
