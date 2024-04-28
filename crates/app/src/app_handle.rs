@@ -28,7 +28,7 @@ impl<B: AppBrain> ApplicationHandler for AppHandle<B> {
         let window = event_loop.create_window(window_attributes).unwrap();
 
         let app = App::new(window, loading_app.brain);
-        *self = task::block_on(app).into();
+        *self = Self::Running(task::block_on(app));
     }
 
     fn window_event(

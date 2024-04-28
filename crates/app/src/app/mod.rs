@@ -1,9 +1,11 @@
 mod brain;
 mod renderer;
+pub mod ui;
 
 use async_std::task;
 use renderer::*;
 use std::sync::Arc;
+use ui::*;
 use winit::{
     event::{ElementState, KeyEvent, WindowEvent},
     event_loop::ActiveEventLoop,
@@ -13,20 +15,22 @@ use winit::{
 
 pub use brain::*;
 
+/// Responsible of managing the `AppBrain`
 pub struct App<B: AppBrain> {
     brain: B,
-    renderer: Renderer,
+    ui: UI,
 }
 
 impl<B: AppBrain> App<B> {
     pub async fn new(window: Window, brain: task::JoinHandle<B>) -> Self {
         let window = Arc::new(window);
         let renderer = Renderer::new(window).await;
+        let mut ui = UI::new(renderer);
 
         let mut brain = brain.await;
-        brain.init();
+        brain.init(&mut ui);
 
-        Self { brain, renderer }
+        Self { brain, ui }
     }
 
     pub fn input(&mut self, event_loop: &ActiveEventLoop, event: WindowEvent) {
@@ -35,7 +39,7 @@ impl<B: AppBrain> App<B> {
                 event_loop.exit();
             }
             WindowEvent::Resized(new_size) => {
-                self.renderer.resize(new_size);
+                self.ui.resize(new_size);
             }
             WindowEvent::KeyboardInput {
                 event:
@@ -52,16 +56,10 @@ impl<B: AppBrain> App<B> {
                 _ => (),
             },
             WindowEvent::RedrawRequested => {
-                self.renderer.render().unwrap();
+                self.ui.render();
             }
-            WindowEvent::CursorMoved { position, .. } => {
-                self.renderer.clear_color = wgpu::Color {
-                    r: position.x as f64 / self.renderer.size().width as f64,
-                    g: position.y as f64 / self.renderer.size().height as f64,
-                    b: 1.0,
-                    a: 1.0,
-                };
-                self.renderer.window.request_redraw();
+            WindowEvent::CursorMoved { .. } => {
+                // ...
             }
             _ => (),
         }

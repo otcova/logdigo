@@ -1,3 +1,4 @@
+use digolog_app::ui::ObjectBuilder;
 use digolog_app::*;
 
 fn main() {
@@ -13,5 +14,10 @@ impl Digolog {
 }
 
 impl AppBrain for Digolog {
-    fn init(&mut self) {}
+    fn init(&mut self, ui: &mut UI) {
+        let block = ui::BlockBuilder {
+            color: ui::Color::RED,
+        }
+        .build(ui);
+    }
 }

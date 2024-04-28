@@ -24,13 +24,13 @@
 //!         // The window is ready to display.
 //!         // Create all the initial ui objects.
 //!
-//!         let left_panel = ui.create(LeftPanelInfo);
-//!         let block = ui.create(BlockInfo);
-//!         let wire = ui.create(WireInfo);
+//!         let left_panel = LeftPanelBuilder { .. }.build(ui);
+//!         let block = BlockBuilder { .. }.build(ui);
+//!         let wire = WireBuilder { .. }.build(ui);
 //!
-//!         ui.delete(left_panel);
-//!         ui.delete(block);
-//!         ui.delete(wire);
+//!         left_panel.delete(ui);
+//!         block.delete(ui);
+//!         wire.delete(ui);
 //!     }
 //! }
 //! ```
@@ -44,6 +44,8 @@ use async_std::task;
 use std::future::Future;
 use winit::event_loop::EventLoop;
 
+pub use app::ui;
+pub use app::ui::UI;
 pub use app::AppBrain;
 
 pub fn run_app<B: AppBrain>(brain: impl Future<Output = B> + Send + 'static) {
