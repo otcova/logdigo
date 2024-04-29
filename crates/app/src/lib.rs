@@ -35,6 +35,8 @@
 //! }
 //! ```
 
+#![allow(unused)]
+
 mod app;
 mod app_handle;
 

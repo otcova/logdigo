@@ -32,7 +32,7 @@ impl Color {
 
 impl Into<[f32; 2]> for Vec2 {
     fn into(self) -> [f32; 2] {
-        [self.x, self.x]
+        [self.x, self.y]
     }
 }
 

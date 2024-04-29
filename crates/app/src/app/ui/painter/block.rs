@@ -33,7 +33,7 @@ impl BlockPainter {
             id,
             RectInstance {
                 position: block.position.into(),
-                color: 1.0, //[255, 255, 255, 255], //block.color.into(),
+                color: block.color.into(),
             },
         );
 

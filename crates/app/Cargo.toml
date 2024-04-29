@@ -5,11 +5,13 @@ edition = "2021"
 
 [dependencies.wgpu]
 version = "0.19"
-deafult-features = false
+default-features = false
+features = ["wgsl"]
 
 [dependencies.winit]
-git = "https://github.com/rust-windowing/winit"
-deafult-features = false
+version = "0.30"
+default-features = false
+features = ["rwh_06"]
 
 [dependencies.bytemuck]
 version = "1.15.0"

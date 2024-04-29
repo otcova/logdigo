@@ -3,6 +3,7 @@ use std::{mem::size_of, ops::Range};
 use crate::*;
 use bytemuck::{Pod, Zeroable};
 use derive_more::Deref;
+use wgpu::util::DeviceExt;
 
 #[derive(Deref)]
 pub struct RectPipeline {
@@ -20,7 +21,7 @@ pub struct RectsBatch {
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct RectInstance {
     pub position: [f32; 2],
-    pub color: f32, //[u8; 4],
+    pub color: [u8; 4],
 }
 
 impl RectPipeline {
@@ -79,7 +80,6 @@ impl RectsBatch {
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
-
         Self {
             buffer,
             instances: vec![],
@@ -130,7 +130,7 @@ impl RectsBatch {
 
 impl RectInstance {
     const ATTRIBUTES: [wgpu::VertexAttribute; 2] =
-        wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32];
+        wgpu::vertex_attr_array![0 => Float32x2, 1 => Unorm8x4];
 
     const fn layout() -> wgpu::VertexBufferLayout<'static> {
         wgpu::VertexBufferLayout {
