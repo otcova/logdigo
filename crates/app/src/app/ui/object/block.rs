@@ -8,25 +8,17 @@ pub struct BlockHandle {
     id: ObjectId,
 }
 
-pub(crate) struct BlockObject {}
-
-impl ObjectBuilder for BlockBuilder {
-    type Handle = BlockHandle;
-
-    fn build(self, ui: &mut UI) -> Self::Handle {
-        let block = BlockObject {};
-
-        let id = ui.objects.new_id();
-        ui.objects.blocks.insert(id, block);
+impl BlockBuilder {
+    pub fn build(self, ui: &mut UI) -> BlockHandle {
+        let id = ui.painters.new_object_id();
         BlockHandle { id }
     }
 }
 
-impl ObjectHandle for BlockHandle {
-    fn id(&self) -> ObjectId {
+impl BlockHandle {
+    pub fn id(&self) -> ObjectId {
         self.id
     }
-    fn delete(self, ui: &mut UI) {
-        ui.objects.blocks.remove(&self.id);
-    }
+
+    pub fn delete(self, _ui: &mut UI) {}
 }

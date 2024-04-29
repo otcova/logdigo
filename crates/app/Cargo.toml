@@ -11,6 +11,10 @@ deafult-features = false
 git = "https://github.com/rust-windowing/winit"
 deafult-features = false
 
+[dependencies.bytemuck]
+version = "1.15.0"
+features = ["derive"]
+
 [dependencies]
 async-std = "1.12"
 derive_more = "0.99.17"

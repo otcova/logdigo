@@ -1,5 +1,9 @@
-use std::sync::Arc;
+mod pipelines;
+
+use std::{iter, sync::Arc};
 use winit::{dpi::PhysicalSize, window::Window};
+
+pub use pipelines::*;
 
 /// Responsible to interact with wgpu
 /// It's a specialized wgpu abstraction layer
@@ -9,8 +13,20 @@ pub struct Renderer {
     surface: wgpu::Surface<'static>,
     queue: wgpu::Queue,
     pub window: Arc<Window>,
-    render_pipeline: wgpu::RenderPipeline,
+    pub pipelines: Pipelines,
 }
+
+pub struct RendererEncoder {
+    encoder: wgpu::CommandEncoder,
+    output: wgpu::SurfaceTexture,
+}
+
+pub struct RendererTexture<'a> {
+    view: wgpu::TextureView,
+    encoder: &'a mut wgpu::CommandEncoder,
+}
+
+pub type RenderPass<'a> = wgpu::RenderPass<'a>;
 
 impl Renderer {
     pub async fn new(window: Arc<Window>) -> Self {
@@ -64,49 +80,7 @@ impl Renderer {
         };
         surface.configure(&device, &surface_config);
 
-        let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
-        let render_pipeline_layout =
-            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: None,
-                bind_group_layouts: &[],
-                push_constant_ranges: &[],
-            });
-        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: None,
-            layout: Some(&render_pipeline_layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: "vs_main", // 1.
-                buffers: &[],           // 2.
-            },
-            fragment: Some(wgpu::FragmentState {
-                // 3.
-                module: &shader,
-                entry_point: "fs_main",
-                targets: &[Some(wgpu::ColorTargetState {
-                    // 4.
-                    format: surface_config.format,
-                    blend: Some(wgpu::BlendState::REPLACE),
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
-            }),
-            primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleStrip,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: None,
-                polygon_mode: wgpu::PolygonMode::Fill,
-                unclipped_depth: false,
-                conservative: false,
-            },
-            depth_stencil: None,
-            multisample: wgpu::MultisampleState {
-                count: 1,                         // 2.
-                mask: !0,                         // 3.
-                alpha_to_coverage_enabled: false, // 4.
-            },
-            multiview: None,
-        });
+        let pipelines = Pipelines::new(&device, &surface_config);
 
         Self {
             device,
@@ -114,7 +88,7 @@ impl Renderer {
             surface,
             queue,
             window,
-            render_pipeline,
+            pipelines,
         }
     }
 
@@ -134,41 +108,51 @@ impl Renderer {
         }
     }
 
-    pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        let output = self.surface.get_current_texture()?;
-        let view = output
+    pub fn create_encoder(&mut self) -> RendererEncoder {
+        RendererEncoder {
+            output: self.surface.get_current_texture().unwrap(),
+            encoder: self.device.create_command_encoder(&Default::default()),
+        }
+    }
+
+    pub fn render(&self, encoder: RendererEncoder) {
+        self.queue.submit(iter::once(encoder.encoder.finish()));
+        self.window.pre_present_notify();
+        encoder.output.present();
+    }
+}
+
+impl RendererEncoder {
+    pub fn surface_texture_target(&mut self) -> RendererTexture {
+        let view = self
+            .output
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
-        let mut encoder = self
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
-
-        {
-            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Render Pass"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::BLUE),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: None,
-                occlusion_query_set: None,
-                timestamp_writes: None,
-            });
-
-            render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.draw(0..4, 0..1);
+        RendererTexture {
+            view,
+            encoder: &mut self.encoder,
         }
+    }
+}
 
-        self.queue.submit(std::iter::once(encoder.finish()));
+impl<'a> RendererTexture<'a> {
+    pub fn render_pass(&mut self) -> wgpu::RenderPass {
+        let render_pass = self.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Main Render Pass"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &self.view,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: None,
+            occlusion_query_set: None,
+            timestamp_writes: None,
+        });
 
-        self.window.pre_present_notify();
-        output.present();
-
-        Ok(())
+        render_pass
     }
 }

@@ -3,7 +3,6 @@ mod renderer;
 pub mod ui;
 
 use async_std::task;
-use renderer::*;
 use std::sync::Arc;
 use ui::*;
 use winit::{
@@ -14,6 +13,8 @@ use winit::{
 };
 
 pub use brain::*;
+pub use renderer::*;
+pub use ui::*;
 
 /// Responsible of managing the `AppBrain`
 pub struct App<B: AppBrain> {

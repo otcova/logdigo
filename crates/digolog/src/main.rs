@@ -1,4 +1,3 @@
-use digolog_app::ui::ObjectBuilder;
 use digolog_app::*;
 
 fn main() {
