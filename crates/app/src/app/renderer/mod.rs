@@ -1,6 +1,7 @@
 mod pipelines;
 
 use std::{iter, sync::Arc};
+use wgpu::util::StagingBelt;
 use winit::{dpi::PhysicalSize, window::Window};
 
 pub use pipelines::*;
@@ -14,6 +15,7 @@ pub struct Renderer {
     queue: wgpu::Queue,
     pub window: Arc<Window>,
     pub pipelines: Pipelines,
+    pub staging_belt: wgpu::util::StagingBelt,
 }
 
 pub struct RendererEncoder {
@@ -82,6 +84,8 @@ impl Renderer {
 
         let pipelines = Pipelines::new(&device, &surface_config);
 
+        let staging_belt = StagingBelt::new(1 << 10); // TODO: Check this constant
+
         Self {
             device,
             surface_config,
@@ -89,6 +93,7 @@ impl Renderer {
             queue,
             window,
             pipelines,
+            staging_belt,
         }
     }
 
@@ -115,8 +120,11 @@ impl Renderer {
         }
     }
 
-    pub fn render(&self, encoder: RendererEncoder) {
+    pub fn render(&mut self, encoder: RendererEncoder) {
+        self.staging_belt.finish();
         self.queue.submit(iter::once(encoder.encoder.finish()));
+        self.staging_belt.recall();
+
         self.window.pre_present_notify();
         encoder.output.present();
     }

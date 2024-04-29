@@ -88,16 +88,25 @@ impl RectsBatch {
         }
     }
 
-    pub fn render<'a>(&'a mut self, render_pass: &mut RenderPass<'a>, renderer: &'a Renderer) {
-        // Update buffer
-        if !self.updated_range.is_empty() {
-            let updated_instances = &self.instances[self.updated_range.clone()];
-            let data = bytemuck::cast_slice(updated_instances);
-
-            let offset = self.updated_range.start as wgpu::BufferAddress;
-            renderer.queue.write_buffer(&self.buffer, offset, data);
+    pub fn update_buffers(&mut self, encoder: &mut RendererEncoder, renderer: &mut Renderer) {
+        let updated_instances = &self.instances[self.updated_range.clone()];
+        let data: &[u8] = bytemuck::cast_slice(updated_instances);
+        let size = data.len() as u64;
+        if let Some(size) = std::num::NonZeroU64::new(size) {
+            let offset =
+                (size_of::<RectInstance>() * self.updated_range.start) as wgpu::BufferAddress;
+            let mut buffer_view = renderer.staging_belt.write_buffer(
+                &mut encoder.encoder,
+                &self.buffer,
+                offset,
+                size,
+                &renderer.device,
+            );
+            buffer_view.copy_from_slice(data);
         }
+    }
 
+    pub fn render<'a>(&'a mut self, render_pass: &mut RenderPass<'a>, renderer: &'a mut Renderer) {
         render_pass.set_pipeline(&*renderer.pipelines.rect);
         let bytes = size_of::<RectInstance>() * self.instances.len();
         render_pass.set_vertex_buffer(0, self.buffer.slice(0..bytes as wgpu::BufferAddress));

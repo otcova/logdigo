@@ -23,7 +23,9 @@ impl Painters {
         self.old_id
     }
 
-    pub fn render(&mut self, encoder: &mut RendererEncoder, renderer: &Renderer) {
+    pub fn render(&mut self, encoder: &mut RendererEncoder, renderer: &mut Renderer) {
+        self.block.update_buffers(encoder, renderer);
+
         let mut surface = encoder.surface_texture_target();
         let mut render_pass = surface.render_pass();
 

@@ -20,7 +20,11 @@ impl BlockPainter {
         }
     }
 
-    pub fn render<'a>(&'a mut self, render_pass: &mut RenderPass<'a>, renderer: &'a Renderer) {
+    pub fn update_buffers(&mut self, encoder: &mut RendererEncoder, renderer: &mut Renderer) {
+        self.rects.update_buffers(encoder, renderer);
+    }
+
+    pub fn render<'a>(&'a mut self, render_pass: &mut RenderPass<'a>, renderer: &'a mut Renderer) {
         self.rects.render(render_pass, renderer);
     }
 
