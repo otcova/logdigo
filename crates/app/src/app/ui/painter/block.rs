@@ -1,6 +1,8 @@
 use crate::*;
 use std::collections::HashMap;
 
+use self::ui::BlockBuilder;
+
 pub struct BlockPainter {
     indexes: HashMap<ObjectId, BlockObject>,
     rects: RectsBatch,
@@ -8,7 +10,6 @@ pub struct BlockPainter {
 
 struct BlockObject {
     rect: usize,
-    pins: Vec<usize>,
 }
 
 impl BlockPainter {
@@ -21,5 +22,17 @@ impl BlockPainter {
 
     pub fn render<'a>(&'a mut self, render_pass: &mut RenderPass<'a>, renderer: &'a Renderer) {
         self.rects.render(render_pass, renderer);
+    }
+
+    pub fn insert(&mut self, id: ObjectId, block: BlockBuilder) {
+        let rect = self.rects.insert(
+            id,
+            RectInstance {
+                position: block.position.into(),
+                color: 1.0, //[255, 255, 255, 255], //block.color.into(),
+            },
+        );
+
+        self.indexes.insert(id, BlockObject { rect });
     }
 }

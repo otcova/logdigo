@@ -18,3 +18,4 @@ features = ["derive"]
 [dependencies]
 async-std = "1.12"
 derive_more = "0.99.17"
+digolog_math.path = "../math"

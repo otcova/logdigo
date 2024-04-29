@@ -1,6 +1,7 @@
 struct InstanceInput {
-    @location(0) position: vec3<f32>,
-    @location(1) color: vec3<f32>,
+    @location(0) position: vec2<f32>,
+    //@location(1) color: vec4<f32>,
+    @location(1) color: f32,
 };
 
 struct VertexOutput {
@@ -16,15 +17,16 @@ fn vs_main(
 
     let x = select(0., 1., bool(vertex_index & 1u));
     let y = select(0., 1., bool(vertex_index & 2u));
-    let vertex_pos = vec3(x, y, 0.0);
+    let vertex_pos = vec2(x, y) + instance.position;
 
     var out: VertexOutput;
-    out.clip_position = vec4<f32>(vertex_pos + instance.position, 1.0);
-    out.color = instance.color;
+    out.clip_position = vec4<f32>(vertex_pos, 0.0, 1.0);
+    out.color = select(vec3(0.0), vec3(1.0), instance.color == 0.0);
     return out;
 }
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    return vec4<f32>(in.color, 1.0);
+    //return vec4<f32>(in.color, 1.0);
+    return vec4<f32>(in.color.r, 1.0, 1.0, 1.0);
 }

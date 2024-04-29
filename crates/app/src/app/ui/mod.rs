@@ -7,8 +7,6 @@ use winit::dpi::PhysicalSize;
 pub use object::*;
 use painter::*;
 
-pub use wgpu::Color;
-
 /// Drawing interface for the AppBrain.
 pub struct UI {
     renderer: Renderer,

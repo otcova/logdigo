@@ -1,9 +1,8 @@
-use std::mem::size_of;
+use std::{mem::size_of, ops::Range};
 
 use crate::*;
 use bytemuck::{Pod, Zeroable};
 use derive_more::Deref;
-use wgpu::util::DeviceExt;
 
 #[derive(Deref)]
 pub struct RectPipeline {
@@ -12,16 +11,16 @@ pub struct RectPipeline {
 
 pub struct RectsBatch {
     rects: Vec<ObjectId>,
-    buffer_data: Vec<RectInstance>,
+    instances: Vec<RectInstance>,
     buffer: wgpu::Buffer,
-    rects_count: u32,
+    updated_range: Range<usize>,
 }
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct RectInstance {
-    pub position: [f32; 3],
-    pub color: [f32; 3],
+    pub position: [f32; 2],
+    pub color: f32, //[u8; 4],
 }
 
 impl RectPipeline {
@@ -73,59 +72,56 @@ impl RectPipeline {
 }
 
 impl RectsBatch {
-    const INSTANCES: &'static [RectInstance] = &[
-        RectInstance {
-            position: [0.0, 0.5, 0.0],
-            color: [1.0, 0.0, 0.0],
-        },
-        RectInstance {
-            position: [-0.5, -0.5, 0.0],
-            color: [0.0, 1.0, 0.0],
-        },
-        RectInstance {
-            position: [0.5, -0.5, 0.0],
-            color: [0.0, 0.0, 1.0],
-        },
-    ];
-
     pub fn new(renderer: &Renderer) -> Self {
-        // let buffer = renderer.device.create_buffer(&wgpu::BufferDescriptor {
-        //     label: Some("RectsBatch Buffer"),
-        //     size: 0,
-        //     usage: wgpu::BufferUsages::VERTEX,
-        //     mapped_at_sreation: false,
-        // });
-        let buffer = renderer
-            .device
-            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("RectsBatch Buffer"),
-                contents: bytemuck::cast_slice(Self::INSTANCES),
-                usage: wgpu::BufferUsages::VERTEX,
-            });
+        let buffer = renderer.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("RectsBatch Buffer"),
+            size: 256, // TODO: Do not hardcode the initial size
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
 
         Self {
             buffer,
-            buffer_data: vec![],
+            instances: vec![],
             rects: vec![],
-            rects_count: Self::INSTANCES.len() as u32,
+            updated_range: 0..0,
         }
     }
 
     pub fn render<'a>(&'a mut self, render_pass: &mut RenderPass<'a>, renderer: &'a Renderer) {
-        //
-        // TODO: Update buffer
-        //
+        // Update buffer
+        if !self.updated_range.is_empty() {
+            let updated_instances = &self.instances[self.updated_range.clone()];
+            let data = bytemuck::cast_slice(updated_instances);
+
+            let offset = self.updated_range.start as wgpu::BufferAddress;
+            renderer.queue.write_buffer(&self.buffer, offset, data);
+        }
 
         render_pass.set_pipeline(&*renderer.pipelines.rect);
-        let bytes = size_of::<RectInstance>() * self.rects_count as usize;
+        let bytes = size_of::<RectInstance>() * self.instances.len();
         render_pass.set_vertex_buffer(0, self.buffer.slice(0..bytes as wgpu::BufferAddress));
-        render_pass.draw(0..4, 0..self.rects_count);
+        render_pass.draw(0..4, 0..self.instances.len() as u32);
+    }
+
+    pub fn insert(&mut self, id: ObjectId, rect: RectInstance) -> usize {
+        self.rects.push(id);
+        self.instances.push(rect);
+
+        let updated = self.instances.len() - 1..self.instances.len();
+
+        if self.updated_range.is_empty() {
+            self.updated_range.start = updated.start;
+        }
+        self.updated_range.end = updated.end;
+
+        updated.start
     }
 }
 
 impl RectInstance {
     const ATTRIBUTES: [wgpu::VertexAttribute; 2] =
-        wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
+        wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32];
 
     const fn layout() -> wgpu::VertexBufferLayout<'static> {
         wgpu::VertexBufferLayout {

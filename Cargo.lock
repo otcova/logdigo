@@ -570,6 +570,7 @@ dependencies = [
  "async-std",
  "bytemuck",
  "derive_more",
+ "digolog_math",
  "wgpu",
  "winit",
 ]
@@ -583,11 +584,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "digolog_math"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+]
+
+[[package]]
 name = "digolog_module_loader"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "derive_more",
+ "digolog_math",
  "serde",
  "toml",
 ]

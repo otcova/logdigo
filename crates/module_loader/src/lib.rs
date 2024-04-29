@@ -24,9 +24,8 @@
 //!
 
 // mod de;
-mod math;
 mod module;
 
 // pub use de::*;
-pub use math::*;
+pub use digolog_math::*;
 pub use module::*;

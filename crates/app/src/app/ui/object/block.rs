@@ -1,7 +1,8 @@
-use super::*;
+use crate::*;
 
 pub struct BlockBuilder {
-    pub color: wgpu::Color,
+    pub position: Vec2,
+    pub color: Color,
 }
 
 pub struct BlockHandle {
@@ -11,6 +12,7 @@ pub struct BlockHandle {
 impl BlockBuilder {
     pub fn build(self, ui: &mut UI) -> BlockHandle {
         let id = ui.painters.new_object_id();
+        ui.painters.block.insert(id, self);
         BlockHandle { id }
     }
 }

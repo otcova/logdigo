@@ -6,7 +6,7 @@ use crate::*;
 use block::*;
 
 pub struct Painters {
-    block: BlockPainter,
+    pub block: BlockPainter,
     old_id: ObjectId,
 }
 
