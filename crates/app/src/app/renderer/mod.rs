@@ -1,9 +1,13 @@
+mod bind_groups;
+mod camera2d;
 mod pipelines;
 
 use std::{iter, sync::Arc};
 use wgpu::util::StagingBelt;
 use winit::{dpi::PhysicalSize, window::Window};
 
+pub use bind_groups::*;
+pub use camera2d::*;
 pub use pipelines::*;
 
 /// Responsible to interact with wgpu
@@ -15,6 +19,7 @@ pub struct Renderer {
     queue: wgpu::Queue,
     pub window: Arc<Window>,
     pub pipelines: Pipelines,
+    pub bind_group_layouts: BindGroupLayouts,
     pub staging_belt: wgpu::util::StagingBelt,
 }
 
@@ -82,7 +87,8 @@ impl Renderer {
         };
         surface.configure(&device, &surface_config);
 
-        let pipelines = Pipelines::new(&device, &surface_config);
+        let bind_group_layouts = BindGroupLayouts::new(&device);
+        let pipelines = Pipelines::new(&device, &surface_config, &bind_group_layouts);
 
         let staging_belt = StagingBelt::new(1 << 10); // TODO: Check this constant
 
@@ -94,6 +100,7 @@ impl Renderer {
             window,
             pipelines,
             staging_belt,
+            bind_group_layouts,
         }
     }
 
@@ -120,7 +127,7 @@ impl Renderer {
         }
     }
 
-    pub fn render(&mut self, encoder: RendererEncoder) {
+    pub fn submit_render(&mut self, encoder: RendererEncoder) {
         self.staging_belt.finish();
         self.queue.submit(iter::once(encoder.encoder.finish()));
         self.staging_belt.recall();

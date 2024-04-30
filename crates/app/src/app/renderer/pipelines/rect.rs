@@ -1,8 +1,7 @@
-use std::{mem::size_of, ops::Range};
-
 use crate::*;
 use bytemuck::{Pod, Zeroable};
 use derive_more::Deref;
+use std::{mem::size_of, ops::Range};
 use wgpu::util::DeviceExt;
 
 #[derive(Deref)]
@@ -20,17 +19,22 @@ pub struct RectsBatch {
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct RectInstance {
-    pub position: [f32; 2],
+    pub position: [i32; 2],
+    pub size: [u16; 2],
     pub color: [u8; 4],
 }
 
 impl RectPipeline {
-    pub fn new(device: &wgpu::Device, surface_config: &wgpu::SurfaceConfiguration) -> Self {
+    pub fn new(
+        device: &wgpu::Device,
+        surface_config: &wgpu::SurfaceConfiguration,
+        bind_group_layouts: &BindGroupLayouts,
+    ) -> Self {
         let shader = device.create_shader_module(wgpu::include_wgsl!("rect.wgsl"));
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
-                bind_group_layouts: &[],
+                bind_group_layouts: &[&bind_group_layouts.camera],
                 push_constant_ranges: &[],
             });
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -103,11 +107,18 @@ impl RectsBatch {
                 &renderer.device,
             );
             buffer_view.copy_from_slice(data);
+            self.updated_range = 0..0;
         }
     }
 
-    pub fn render<'a>(&'a mut self, render_pass: &mut RenderPass<'a>, renderer: &'a mut Renderer) {
+    pub fn render<'a>(
+        &'a mut self,
+        render_pass: &mut RenderPass<'a>,
+        renderer: &'a mut Renderer,
+        camera: &'a Camera2d,
+    ) {
         render_pass.set_pipeline(&*renderer.pipelines.rect);
+        camera.bind(render_pass);
         let bytes = size_of::<RectInstance>() * self.instances.len();
         render_pass.set_vertex_buffer(0, self.buffer.slice(0..bytes as wgpu::BufferAddress));
         render_pass.draw(0..4, 0..self.instances.len() as u32);
@@ -129,14 +140,14 @@ impl RectsBatch {
 }
 
 impl RectInstance {
-    const ATTRIBUTES: [wgpu::VertexAttribute; 2] =
-        wgpu::vertex_attr_array![0 => Float32x2, 1 => Unorm8x4];
+    const ATTRIBUTES: &'static [wgpu::VertexAttribute] =
+        &wgpu::vertex_attr_array![0 => Sint32x2, 1 => Uint16x2, 2 => Unorm8x4];
 
     const fn layout() -> wgpu::VertexBufferLayout<'static> {
         wgpu::VertexBufferLayout {
             array_stride: size_of::<RectInstance>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Instance,
-            attributes: &Self::ATTRIBUTES,
+            attributes: Self::ATTRIBUTES,
         }
     }
 }

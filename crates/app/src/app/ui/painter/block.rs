@@ -24,8 +24,13 @@ impl BlockPainter {
         self.rects.update_buffers(encoder, renderer);
     }
 
-    pub fn render<'a>(&'a mut self, render_pass: &mut RenderPass<'a>, renderer: &'a mut Renderer) {
-        self.rects.render(render_pass, renderer);
+    pub fn render<'a>(
+        &'a mut self,
+        render_pass: &mut RenderPass<'a>,
+        renderer: &'a mut Renderer,
+        camera: &'a Camera2d,
+    ) {
+        self.rects.render(render_pass, renderer, camera);
     }
 
     pub fn insert(&mut self, id: ObjectId, block: BlockBuilder) {
@@ -33,6 +38,7 @@ impl BlockPainter {
             id,
             RectInstance {
                 position: block.position.into(),
+                size: block.size.into(),
                 color: block.color.into(),
             },
         );

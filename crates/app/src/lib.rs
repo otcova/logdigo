@@ -36,6 +36,7 @@
 //! ```
 
 #![allow(unused)]
+#![feature(generic_nonzero)]
 
 mod app;
 mod app_handle;

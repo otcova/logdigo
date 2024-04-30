@@ -1,7 +1,8 @@
 use crate::*;
 
 pub struct BlockBuilder {
-    pub position: Vec2,
+    pub position: Vec2<i32>,
+    pub size: Vec2<u16>,
     pub color: Color,
 }
 

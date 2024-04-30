@@ -535,6 +535,7 @@ dependencies = [
 name = "digolog_math"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "derive_more",
 ]
 

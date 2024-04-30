@@ -20,7 +20,7 @@ pub struct Chapter {
 pub struct Block {
     // TODO:[Perfomance] Share Block struct for multipl BlockPanel instances. (Change 'block' to be an index or a Rc<>)
     pub shape: BlockShape,
-    pub pos: Vec2,
+    pub pos: Vec2<i32>,
 }
 
 /// Index of a Block in 'Chapter::blocks'

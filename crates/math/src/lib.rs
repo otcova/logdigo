@@ -1,20 +1,23 @@
+use bytemuck::{Pod, Zeroable};
 use derive_more::*;
+use std::ops::*;
 
-#[derive(Debug, Copy, Clone, PartialEq, Add, Sub)]
-pub struct Vec2 {
-    pub x: f32,
-    pub y: f32,
+pub trait VecComponent: Copy + Clone + PartialEq + Add + Sub + Pod + Zeroable {}
+impl<T: Copy + Clone + PartialEq + Add + Sub + Pod + Zeroable> VecComponent for T {}
+
+#[repr(C, packed)]
+#[derive(Debug, Copy, Clone, PartialEq, Add, Sub, Pod, Zeroable)]
+pub struct Vec2<T: VecComponent> {
+    pub x: T,
+    pub y: T,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Pod, Zeroable)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
     pub b: u8,
-}
-
-impl Vec2 {
-    pub const ZERO: Self = Vec2 { x: 0.0, y: 0.0 };
 }
 
 impl Color {
@@ -30,9 +33,15 @@ impl Color {
     }
 }
 
-impl Into<[f32; 2]> for Vec2 {
-    fn into(self) -> [f32; 2] {
-        [self.x, self.y]
+impl<T: VecComponent> Vec2<T> {
+    pub fn splat(v: T) -> Vec2<T> {
+        Vec2 { x: v, y: v }
+    }
+}
+
+impl<T: VecComponent, U: From<T>> Into<[U; 2]> for Vec2<T> {
+    fn into(self) -> [U; 2] {
+        [self.x.into(), self.y.into()]
     }
 }
 
