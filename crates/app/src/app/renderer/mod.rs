@@ -129,7 +129,7 @@ impl Renderer {
 
     pub fn submit_render(&mut self, encoder: RendererEncoder) {
         self.staging_belt.finish();
-        self.queue.submit(iter::once(encoder.encoder.finish()));
+        self.queue.submit([encoder.encoder.finish()]);
         self.staging_belt.recall();
 
         self.window.pre_present_notify();

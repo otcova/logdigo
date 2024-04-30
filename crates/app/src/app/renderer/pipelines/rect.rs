@@ -14,6 +14,7 @@ pub struct RectsBatch {
     instances: Vec<RectInstance>,
     buffer: wgpu::Buffer,
     updated_range: Range<usize>,
+    render_bundle: Option<wgpu::RenderBundle>,
 }
 
 #[repr(C)]
@@ -89,6 +90,7 @@ impl RectsBatch {
             instances: vec![],
             rects: vec![],
             updated_range: 0..0,
+            render_bundle: None,
         }
     }
 
@@ -117,11 +119,28 @@ impl RectsBatch {
         renderer: &'a mut Renderer,
         camera: &'a Camera2d,
     ) {
-        render_pass.set_pipeline(&*renderer.pipelines.rect);
-        camera.bind(render_pass);
-        let bytes = size_of::<RectInstance>() * self.instances.len();
-        render_pass.set_vertex_buffer(0, self.buffer.slice(0..bytes as wgpu::BufferAddress));
-        render_pass.draw(0..4, 0..self.instances.len() as u32);
+        let render_bundle = self.render_bundle.get_or_insert_with(|| {
+            let mut enc = renderer.device.create_render_bundle_encoder(
+                &wgpu::RenderBundleEncoderDescriptor {
+                    label: Some("Rect"),
+                    multiview: None,
+                    sample_count: 1,
+                    color_formats: &[Some(renderer.surface_config.format)],
+                    depth_stencil: None,
+                },
+            );
+            enc.set_pipeline(&*renderer.pipelines.rect);
+            enc.set_bind_group(0, &camera.bind_group, &[]);
+            let bytes = size_of::<RectInstance>() * self.instances.len();
+            enc.set_vertex_buffer(0, self.buffer.slice(0..bytes as u64));
+            enc.draw(0..4, 0..self.instances.len() as u32);
+
+            enc.finish(&wgpu::RenderBundleDescriptor {
+                label: Some("Rect"),
+            })
+        });
+
+        render_pass.execute_bundles([&*render_bundle]);
     }
 
     pub fn insert(&mut self, id: ObjectId, rect: RectInstance) -> usize {

@@ -12,7 +12,7 @@ pub struct Camera2dUniform {
 pub struct Camera2d {
     buffer: wgpu::Buffer,
     uniform: Camera2dUniform,
-    bind_group: wgpu::BindGroup,
+    pub bind_group: wgpu::BindGroup,
     changed: bool,
 }
 
@@ -57,10 +57,6 @@ impl Camera2d {
             view.copy_from_slice(bytemuck::bytes_of(&self.uniform));
             self.changed = false;
         }
-    }
-
-    pub fn bind<'a>(&'a self, render_pass: &mut RenderPass<'a>) {
-        render_pass.set_bind_group(0, &self.bind_group, &[]);
     }
 }
 
