@@ -2,9 +2,8 @@ color = "red"
 
 [block.Add]
 lable = "+"
-input = "bundle<B, I>"
-output = "cable<S> sum"
-constant.S = { min = "I" }
+input = "bundle<InBundle, In>"
+output = "cable<Out> sum"
 
 [block.Sub]
 lable = "-"
@@ -15,7 +14,6 @@ output = ["cable diff", "wire sign"]
 lable = "x"
 input = ["bundle<B, I>"]
 output = "cable<P> prod"
-constant.P = { min = "I" }
 
 [block.Div]
 lable = "/"

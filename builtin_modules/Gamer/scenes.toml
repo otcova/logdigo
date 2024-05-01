@@ -1,0 +1,3 @@
+[scene.Speaker]
+inputs = ["cable<Resolution> voltage"]
+outputs = []

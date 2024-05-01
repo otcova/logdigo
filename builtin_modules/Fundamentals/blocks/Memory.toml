@@ -3,7 +3,7 @@ color = "green"
 [block.Constant]
 lable = "<X>"
 output = "cable<C>"
-constant.X = { max_bits = "C" }
+constant.Value = { max_bits = "C" }
 
 [block.SetResetLatch]
 lable = "Latch"

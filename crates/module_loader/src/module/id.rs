@@ -18,6 +18,5 @@ pub struct ChapterId {
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct BlockDescId {
-    pub module_id: ModuleId,
     pub name: String,
 }

@@ -4,13 +4,13 @@ color = "orange"
 lable = "Mux"
 input = ["bundle<B, C>", "cable<S> select"]
 output = "cable<C>"
-constant.S = "B:bits()"
+# constant.S = "B:bits()"
 
 [block.Encoder]
 lable = "Enc"
 input = "bundle<B, 1>"
 output = "cable<C>"
-constant.C = "B:bits()"
+# constant.C = "B:bits()"
 
 [block.Decoder]
 lable = "Dec"

@@ -8,25 +8,27 @@ pub use id::*;
 pub use local_modules::*;
 pub use solution::*;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
+
+pub type ModuleBlocks = HashMap<String, Arc<BlockDesc>>;
 
 pub struct Module {
     pub id: ModuleId,
     pub description: String,
     pub author: Vec<String>,
-    pub blocks: HashMap<String, BlockDesc>,
-    books: HashMap<String, Book>,
+    pub blocks: ModuleBlocks,
+    pub(crate) books: HashMap<String, Book>,
 }
 
 pub struct Book {
     pub id: BookId,
-    chapters: Vec<Chapter>,
+    pub(crate) chapters: Vec<Chapter>,
 }
 
 pub struct Chapter {
     pub id: ChapterId,
+    pub allowed_blocks: Vec<BlockDescSubset>,
     pub completion_status: ChapterCompletionStatus,
-    pub allowed_blocks: Vec<BlockDescId>,
 }
 
 impl Module {

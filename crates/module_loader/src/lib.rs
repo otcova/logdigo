@@ -23,9 +23,9 @@
 //! ```
 //!
 
-// mod de;
+mod manifest;
 mod module;
 
-// pub use de::*;
 pub use digolog_math::*;
+pub use manifest::*;
 pub use module::*;

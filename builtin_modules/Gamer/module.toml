@@ -2,4 +2,4 @@ name = ""
 description = ""
 author = ["Otger"]
 
-requirements = []
+requirements = ["builtin/Fundamentals"]

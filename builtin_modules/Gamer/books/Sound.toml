@@ -1,0 +1,8 @@
+requirements = []
+allowed_blocks = ["Boolean", "Arithmetic"]
+
+[[chapter]]
+title = "Square Wave"
+scenes = ["Speaker<Resolution = 8>"]
+inputs = []
+outputs = []

@@ -1,8 +1,9 @@
 requirements = ["Binary"]
 
+allowed_blocks = ["Boolean"]
+
 [[chapter]]
 title = "Half Adder"
-unlock = "Adder[1]"
 
 inputs = ["a", "b"]
 outputs = ["sum", "carry"]
@@ -13,7 +14,7 @@ function = "HalfAdder"
 
 [[chapter]]
 title = "Full Adder"
-unlock = "CarryAdder[1]"
+allowed_blocks = ["Add<InBundle=2, In=1, Out=2>"]
 
 inputs = ["a", "b", "c"]
 outputs = ["sum", "carry"]
@@ -24,7 +25,7 @@ function = "FullAdder"
 
 [[chapter]]
 title = "Addition"
-unlock = ["Adder", "CarryAdder"]
+allowed_blocks = ["Add<InBundle=3, In=1, Out=2>"]
 
 inputs = ["a[4]", "b[4]"]
 outputs = "sum[5]"
@@ -35,7 +36,7 @@ function = "Adder"
 
 [[chapter]]
 title = "Subtraction"
-unlock = ["Subtractor"]
+allowed_blocks = ["Add"]
 
 inputs = ["a[4]", "b[4]"]
 outputs = ["difference[4]", "sign"]

@@ -1,0 +1,6 @@
+block.Constant = "builtin/Fundamentals"
+
+[block.Melody]
+lable = "Melody"
+input = ["cable<10> time"]
+output = ["cable<Resolution> frequency", "cable<Resolution> amplitude", "wire finished"]
