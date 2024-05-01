@@ -8,4 +8,4 @@ derive_more = "0.99.17"
 
 [dependencies.bytemuck]
 version = "1.15.0"
-features = ["derive"]
+features = ["derive", "nightly_portable_simd"]

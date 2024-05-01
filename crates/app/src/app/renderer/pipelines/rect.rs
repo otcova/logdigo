@@ -20,9 +20,9 @@ pub struct RectsBatch {
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct RectInstance {
-    pub position: [i32; 2],
-    pub size: [u16; 2],
-    pub color: [u8; 4],
+    pub position: f32x2,
+    pub size: u16x2,
+    pub color: u8x4,
 }
 
 impl RectPipeline {
@@ -160,7 +160,7 @@ impl RectsBatch {
 
 impl RectInstance {
     const ATTRIBUTES: &'static [wgpu::VertexAttribute] =
-        &wgpu::vertex_attr_array![0 => Sint32x2, 1 => Uint16x2, 2 => Unorm8x4];
+        &wgpu::vertex_attr_array![0 => Float32x2, 1 => Uint16x2, 2 => Unorm8x4];
 
     const fn layout() -> wgpu::VertexBufferLayout<'static> {
         wgpu::VertexBufferLayout {

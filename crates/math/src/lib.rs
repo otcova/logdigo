@@ -1,5 +1,5 @@
-mod vec;
+#![feature(portable_simd)]
+
 mod color;
 
-pub use vec::*;
 pub use color::*;

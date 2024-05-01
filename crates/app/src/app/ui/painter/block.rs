@@ -1,7 +1,8 @@
-use crate::*;
-use std::collections::HashMap;
-
 use self::ui::BlockBuilder;
+use crate::*;
+use digolog_math::*;
+use std::collections::HashMap;
+use std::simd::num::SimdInt;
 
 pub struct BlockPainter {
     indexes: HashMap<ObjectId, BlockObject>,
@@ -37,9 +38,9 @@ impl BlockPainter {
         let rect = self.rects.insert(
             id,
             RectInstance {
-                position: block.position.into(),
-                size: block.size.into(),
-                color: block.color.into(),
+                position: block.position.cast(),
+                size: block.size,
+                color: *block.color,
             },
         );
 

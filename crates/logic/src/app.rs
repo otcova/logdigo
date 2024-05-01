@@ -1,17 +1,14 @@
 use crate::*;
+use digolog_module_loader::*;
+use std::path::PathBuf;
 
-pub struct App {
-    modules: Vec<Module>,
+pub struct AppLogic {
+    local_modules: LocalModules,
 }
 
-impl App {
-    // pub fn new() -> Self {
-    //     Self {
-    //         modules: Module::builtin_mods(),
-    //     }
-    // }
-
-    pub fn iter_modules(&self) -> impl Iterator<Item = &Module> {
-        self.modules.iter()
+impl AppLogic {
+    pub fn load(app_folder: PathBuf) -> Self {
+        let local_modules = LocalModules::load(app_folder.join("local_modules"));
+        Self { local_modules }
     }
 }

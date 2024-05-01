@@ -1,5 +1,5 @@
-//! # What is digilog-app
-//! This module is responsable of:
+//! # What is digilog_app
+//! This crate is responsable of:
 //!  - Managing the window and graphics
 //!  - Implement a UI layer specific for Digolog
 //!  - Giving an interface to use the library
@@ -36,7 +36,7 @@
 //! ```
 
 #![allow(unused)]
-#![feature(generic_nonzero)]
+#![feature(generic_nonzero, portable_simd)]
 
 mod app;
 mod app_handle;
@@ -45,6 +45,7 @@ use app::*;
 use app_handle::*;
 use async_std::task;
 use std::future::Future;
+use std::simd::*;
 use winit::event_loop::EventLoop;
 
 pub use app::ui;

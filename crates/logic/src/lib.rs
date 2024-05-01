@@ -1,13 +1,20 @@
+//! # What is digolog-logic
+//! This crate has all the app core logic of digolog. This does not include
+//! the rendering and ui.
+//!
+//! # Expected use cases:
+//! ```
+//! let logic = AppLogic::open("/digolog_folder");
+//!
+//!
+//! ```
+
 #![allow(unused)]
 
 mod app;
-mod instance;
-mod modules;
-mod runner;
-mod template;
+// mod modules;
+// mod runner;
 
 pub use app::*;
-pub use instance::*;
-pub use modules::*;
-pub use runner::*;
-pub use template::*;
+// pub use modules::*;
+// pub use runner::*;

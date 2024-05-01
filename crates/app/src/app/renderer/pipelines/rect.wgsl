@@ -1,5 +1,5 @@
 struct InstanceInput {
-    @location(0) position: vec2<i32>,
+    @location(0) position: vec2<f32>,
     @location(1) size: vec2<u32>,
     @location(2) color: vec4<f32>,
 };
@@ -25,7 +25,7 @@ fn vs_main(
 
     let x = select(0., f32(instance.size.x), bool(vertex_index & 1u));
     let y = select(0., f32(instance.size.y), bool(vertex_index & 2u));
-    let vertex_pos = vec2(x, y) + vec2<f32>(instance.position);
+    let vertex_pos = vec2(x, y) + instance.position;
 
     let camera_center = (camera.max_corner + camera.min_corner) / 2.;
     let camera_half_size = camera_center - camera.min_corner;

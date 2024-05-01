@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use std::path::*;
 
 pub struct LocalModules {
-    modules_path: PathBuf,
-    chapters_status: HashMap<ChapterId, ChapterCompletionStatus>,
+    modules_folder: PathBuf,
 }
 
 pub struct ModuleSummary {
@@ -14,8 +13,8 @@ pub struct ModuleSummary {
 }
 
 impl LocalModules {
-    pub fn load() -> Self {
-        todo!()
+    pub fn load(modules_folder: PathBuf) -> Self {
+        Self { modules_folder }
     }
 
     // /// Get the title and completion ratio of each local module

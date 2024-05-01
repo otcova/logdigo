@@ -15,9 +15,9 @@ impl Digolog {
 impl AppBrain for Digolog {
     fn init(&mut self, ui: &mut UI) {
         ui::BlockBuilder {
-            position: Vec2 { x: 0, y: 0 },
-            size: Vec2 { x: 1, y: 3 },
-            color: Color::WHITE,
+            position: [0, 0].into(),
+            size: [1, 3].into(),
+            color: [140, 100, 200, 0].into(),
         }
         .build(ui);
     }

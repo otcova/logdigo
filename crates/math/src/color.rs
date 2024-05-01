@@ -1,49 +1,49 @@
+use crate::*;
 use bytemuck::{Pod, Zeroable};
+use derive_more::*;
+use std::simd::*;
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Pod, Zeroable)]
-pub struct Color {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
-}
-
-impl Color {
-    pub const WHITE: Self = Color::gray(255);
-    pub const GRAY: Self = Color::gray(127);
-    pub const BLACK: Self = Color::gray(0);
-    pub const RED: Self = Color { r: 255, g: 0, b: 0 };
-    pub const GREEN: Self = Color { r: 0, g: 255, b: 0 };
-    pub const BLUE: Self = Color { r: 0, g: 0, b: 255 };
-
-    pub const fn gray(l: u8) -> Color {
-        Color { r: l, g: l, b: l }
-    }
-}
+#[derive(Debug, Into, From, Deref, Copy, Clone, PartialEq, Eq, Pod, Zeroable)]
+pub struct Color(u8x4);
 
 /// Used to convert #fff into #ffffff
-/// This function takes 0xf and returns 0xff
-fn repeat_hex(num: u8) -> u8 {
+/// This function takes [0xf, 0x3] and returns [0xff, 0x33]
+fn repeat_hex(num: u8x4) -> u8x4 {
     (num << 4) | num
 }
 
 impl Color {
     /// Takes a hexadecimal color without the initial '#'
-    /// If present, ignores the alpha component
     pub fn from_hex(color: &str) -> Color {
         match color.len() {
-            3 | 4 => Color {
-                r: repeat_hex(u8::from_str_radix(&color[0..1], 16).unwrap()),
-                g: repeat_hex(u8::from_str_radix(&color[0..1], 16).unwrap()),
-                b: repeat_hex(u8::from_str_radix(&color[0..1], 16).unwrap()),
-            },
-            6 | 8 => Color {
-                r: u8::from_str_radix(&color[0..2], 16).unwrap(),
-                g: u8::from_str_radix(&color[2..4], 16).unwrap(),
-                b: u8::from_str_radix(&color[4..6], 16).unwrap(),
-            },
+            3 => repeat_hex(u8x4::from([
+                u8::from_str_radix(&color[0..1], 16).unwrap(),
+                u8::from_str_radix(&color[1..2], 16).unwrap(),
+                u8::from_str_radix(&color[2..3], 16).unwrap(),
+                0,
+            ])),
+            4 => repeat_hex(u8x4::from([
+                u8::from_str_radix(&color[0..1], 16).unwrap(),
+                u8::from_str_radix(&color[1..2], 16).unwrap(),
+                u8::from_str_radix(&color[2..3], 16).unwrap(),
+                u8::from_str_radix(&color[3..4], 16).unwrap(),
+            ])),
+            6 => u8x4::from([
+                u8::from_str_radix(&color[0..2], 16).unwrap(),
+                u8::from_str_radix(&color[2..4], 16).unwrap(),
+                u8::from_str_radix(&color[4..6], 16).unwrap(),
+                0,
+            ]),
+            8 => u8x4::from([
+                u8::from_str_radix(&color[0..2], 16).unwrap(),
+                u8::from_str_radix(&color[2..4], 16).unwrap(),
+                u8::from_str_radix(&color[4..6], 16).unwrap(),
+                u8::from_str_radix(&color[7..8], 16).unwrap(),
+            ]),
             _ => panic!("Invalid hexadecimal color string {:?}", color),
         }
+        .into()
     }
 }
 
@@ -53,26 +53,21 @@ impl From<&str> for Color {
             Color::from_hex(&color[1..])
         } else {
             match color {
-                "white" => Color::WHITE,
-                "gray" => Color::GRAY,
-                "black" => Color::BLACK,
-                "red" => Color::RED,
-                "green" => Color::GREEN,
-                "blue" => Color::BLUE,
+                "white" => [255, 0, 0, 255],
+                "gray" => [127, 127, 127, 255],
+                "black" => [0, 0, 0, 255],
+                "red" => [255, 0, 0, 255],
+                "green" => [0, 255, 0, 255],
+                "blue" => [0, 0, 255, 255],
                 _ => panic!("Invalid color string {:?}", color),
             }
+            .into()
         }
     }
 }
 
-impl Into<[u8; 3]> for Color {
-    fn into(self) -> [u8; 3] {
-        [self.r, self.g, self.b]
-    }
-}
-
-impl Into<[u8; 4]> for Color {
-    fn into(self) -> [u8; 4] {
-        [self.r, self.g, self.b, 255]
+impl From<[u8; 4]> for Color {
+    fn from(value: [u8; 4]) -> Self {
+        Color(value.into())
     }
 }

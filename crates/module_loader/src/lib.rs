@@ -3,7 +3,7 @@
 //! # Expected use cases
 //!
 //! ```
-//! let local_modules = LocalModules::load();
+//! let local_modules = LocalModules::open("/modules_folder");
 //!
 //! // List installed modules
 //! for module_brief in local_modules.summary_modules() {
@@ -22,10 +22,13 @@
 //! let solution = chapter.load_solution();
 //! ```
 //!
+#![feature(portable_simd)]
 
 mod manifest;
 mod module;
 
-pub use digolog_math::*;
+use digolog_math::*;
+use std::simd::*;
+
 pub use manifest::*;
 pub use module::*;

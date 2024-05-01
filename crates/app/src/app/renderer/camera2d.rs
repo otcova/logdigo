@@ -5,8 +5,8 @@ use std::{mem::size_of, num::NonZero};
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct Camera2dUniform {
-    min_corner: Vec2<f32>,
-    max_corner: Vec2<f32>,
+    min_corner: f32x2,
+    max_corner: f32x2,
 }
 
 pub struct Camera2d {
@@ -19,8 +19,8 @@ pub struct Camera2d {
 impl Camera2d {
     pub fn new(renderer: &Renderer) -> Self {
         let uniform = Camera2dUniform {
-            min_corner: Vec2::splat(-10.0),
-            max_corner: Vec2::splat(10.),
+            min_corner: f32x2::splat(-10.0),
+            max_corner: f32x2::splat(10.),
         };
         let buffer = renderer.device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
