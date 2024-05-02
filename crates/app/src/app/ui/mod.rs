@@ -2,8 +2,8 @@ mod object;
 mod painter;
 
 use super::Renderer;
-use winit::dpi::PhysicalSize;
 
+use crate::*;
 pub use object::*;
 use painter::*;
 
@@ -26,8 +26,10 @@ impl UI {
         self.painters.render(&mut encoder, &mut self.renderer);
         self.renderer.submit_render(encoder);
     }
-    pub(crate) fn resize(&mut self, new_size: PhysicalSize<u32>) {
-        self.renderer.resize(new_size);
+    pub(crate) fn resize(&mut self, new_size: u32x2) {
+        if self.renderer.resize(new_size) {
+            self.painters.resize(new_size);
+        }
     }
 
     pub(crate) fn request_redraw(&self) {

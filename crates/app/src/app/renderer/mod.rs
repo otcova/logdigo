@@ -2,9 +2,10 @@ mod bind_groups;
 mod camera2d;
 mod pipelines;
 
+use crate::*;
 use std::{iter, sync::Arc};
 use wgpu::util::StagingBelt;
-use winit::{dpi::PhysicalSize, window::Window};
+use winit::window::Window;
 
 pub use bind_groups::*;
 pub use camera2d::*;
@@ -104,19 +105,20 @@ impl Renderer {
         }
     }
 
-    pub fn size(&self) -> PhysicalSize<u32> {
-        PhysicalSize {
-            width: self.surface_config.width,
-            height: self.surface_config.height,
-        }
+    pub fn size(&self) -> u32x2 {
+        [self.surface_config.width, self.surface_config.height].into()
     }
 
-    pub fn resize(&mut self, new_size: PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0 && self.size() != new_size {
-            self.surface_config.width = new_size.width;
-            self.surface_config.height = new_size.height;
+    /// Returns true if the size has changed
+    pub fn resize(&mut self, new_size: u32x2) -> bool {
+        if new_size > [0, 0].into() && self.size() != new_size {
+            self.surface_config.width = new_size[0];
+            self.surface_config.height = new_size[1];
             self.surface.configure(&self.device, &self.surface_config);
             self.window.request_redraw();
+            true
+        } else {
+            false
         }
     }
 

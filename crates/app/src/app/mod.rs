@@ -40,7 +40,8 @@ impl<B: AppBrain> App<B> {
                 event_loop.exit();
             }
             WindowEvent::Resized(new_size) => {
-                self.ui.resize(new_size);
+                let new_size: [u32; 2] = new_size.into();
+                self.ui.resize(new_size.into());
             }
             WindowEvent::KeyboardInput {
                 event:

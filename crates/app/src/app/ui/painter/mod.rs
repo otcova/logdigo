@@ -23,6 +23,10 @@ impl Painters {
         self.old_id
     }
 
+    pub fn resize(&mut self, new_size: u32x2) {
+        // self.;
+    }
+
     pub fn render(&mut self, encoder: &mut RendererEncoder, renderer: &mut Renderer) {
         self.main_camera.update_buffer(encoder, renderer);
         self.block.update_buffers(encoder, renderer);
