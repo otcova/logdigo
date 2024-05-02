@@ -29,7 +29,7 @@ impl BlockPainter {
         &'a mut self,
         render_pass: &mut RenderPass<'a>,
         renderer: &'a mut Renderer,
-        camera: &'a Camera2d,
+        camera: &'a Camera2dBuffer,
     ) {
         self.rects.render(render_pass, renderer, camera);
     }

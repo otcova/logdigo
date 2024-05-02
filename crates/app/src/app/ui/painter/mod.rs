@@ -4,7 +4,7 @@ use crate::*;
 use block::*;
 
 pub struct Painters {
-    pub main_camera: Camera2d,
+    pub main_camera: Camera2dBuffer,
     pub block: BlockPainter,
     old_id: ObjectId,
 }
@@ -12,7 +12,7 @@ pub struct Painters {
 impl Painters {
     pub fn new(renderer: &Renderer) -> Self {
         Self {
-            main_camera: Camera2d::new(renderer),
+            main_camera: Camera2dBuffer::new(renderer),
             block: BlockPainter::new(renderer),
             old_id: 0,
         }
@@ -24,7 +24,7 @@ impl Painters {
     }
 
     pub fn resize(&mut self, new_size: u32x2) {
-        // self.;
+        self.main_camera.resize(new_size);
     }
 
     pub fn render(&mut self, encoder: &mut RendererEncoder, renderer: &mut Renderer) {

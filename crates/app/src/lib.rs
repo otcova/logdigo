@@ -45,6 +45,7 @@ use app::*;
 use app_handle::*;
 use async_std::task;
 use std::future::Future;
+use std::simd::num::*;
 use std::simd::*;
 use winit::event_loop::EventLoop;
 

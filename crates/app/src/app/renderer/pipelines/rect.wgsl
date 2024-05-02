@@ -10,8 +10,8 @@ struct VertexOutput {
 };
 
 struct CameraUniform {
-    min_corner: vec2<f32>,
-    max_corner: vec2<f32>,
+    center: vec2<f32>,
+    scale: vec2<f32>,
 };
 
 @group(0) @binding(0)
@@ -27,9 +27,7 @@ fn vs_main(
     let y = select(0., f32(instance.size.y), bool(vertex_index & 2u));
     let vertex_pos = vec2(x, y) + instance.position;
 
-    let camera_center = (camera.max_corner + camera.min_corner) / 2.;
-    let camera_half_size = camera_center - camera.min_corner;
-    let view_pos = (vertex_pos - camera_center) / camera_half_size;
+    let view_pos = (vertex_pos - camera.center) * camera.scale;
 
     var out: VertexOutput;
     out.clip_position = vec4<f32>(view_pos, 0.0, 1.0);

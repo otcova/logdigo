@@ -1,26 +1,40 @@
 use crate::*;
 use bytemuck::{Pod, Zeroable};
-use std::{mem::size_of, num::NonZero};
+use derive_more::Deref;
+use std::{mem::size_of, num::*, ops::DerefMut};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct Camera2dUniform {
-    min_corner: f32x2,
-    max_corner: f32x2,
+    /// In word units
+    center: f32x2,
+    /// The amount of clipping units in a world unit
+    scale: f32x2,
 }
 
+#[derive(Copy, Clone, Debug)]
 pub struct Camera2d {
+    /// In word units
+    center: f32x2,
+    /// The amount of pixels in a world unit
+    scale: f32,
+}
+
+#[derive(Deref)]
+pub struct Camera2dBuffer {
     buffer: wgpu::Buffer,
-    uniform: Camera2dUniform,
+    surface_pixels: u32x2,
     pub bind_group: wgpu::BindGroup,
     changed: bool,
+    #[deref]
+    camera: Camera2d,
 }
 
-impl Camera2d {
+impl Camera2dBuffer {
     pub fn new(renderer: &Renderer) -> Self {
-        let uniform = Camera2dUniform {
-            min_corner: f32x2::splat(-10.0),
-            max_corner: f32x2::splat(10.),
+        let camera = Camera2d {
+            center: f32x2::splat(0.0),
+            scale: 10.,
         };
         let buffer = renderer.device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
@@ -40,22 +54,48 @@ impl Camera2d {
             });
 
         Self {
-            uniform,
             buffer,
             bind_group,
+            surface_pixels: u32x2::default(),
+            camera,
             changed: true,
+        }
+    }
+
+    pub fn resize(&mut self, new_size: u32x2) {
+        if (self.surface_pixels != new_size) {
+            self.surface_pixels = new_size;
+            self.changed = true;
         }
     }
 
     pub fn update_buffer(&mut self, encoder: &mut RendererEncoder, renderer: &mut Renderer) {
         if self.changed {
+            self.changed = false;
+
             let size = Camera2dUniform::SIZE;
             let encoder = &mut encoder.encoder;
             let belt = &mut renderer.staging_belt;
             let mut view = belt.write_buffer(encoder, &self.buffer, 0, size, &renderer.device);
 
-            view.copy_from_slice(bytemuck::bytes_of(&self.uniform));
-            self.changed = false;
+            let uniform = Camera2dUniform::from_camera(**self, self.surface_pixels.cast());
+            view.copy_from_slice(bytemuck::bytes_of(&uniform));
+        }
+    }
+}
+
+impl DerefMut for Camera2dBuffer {
+    fn deref_mut(&mut self) -> &mut Camera2d {
+        self.changed = true;
+        &mut self.camera
+    }
+}
+
+impl Camera2dUniform {
+    pub fn from_camera(camera: Camera2d, surface_pixels: f32x2) -> Self {
+        Self {
+            center: camera.center,
+            scale: f32x2::splat(camera.scale * 2.0) / surface_pixels,
         }
     }
 }

@@ -117,7 +117,7 @@ impl RectsBatch {
         &'a mut self,
         render_pass: &mut RenderPass<'a>,
         renderer: &'a mut Renderer,
-        camera: &'a Camera2d,
+        camera: &'a Camera2dBuffer,
     ) {
         let render_bundle = self.render_bundle.get_or_insert_with(|| {
             let mut enc = renderer.device.create_render_bundle_encoder(
