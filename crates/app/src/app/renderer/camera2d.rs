@@ -34,7 +34,7 @@ impl Camera2dBuffer {
     pub fn new(renderer: &Renderer) -> Self {
         let camera = Camera2d {
             center: f32x2::splat(0.0),
-            scale: 10.,
+            scale: 20.,
         };
         let buffer = renderer.device.create_buffer(&wgpu::BufferDescriptor {
             label: None,

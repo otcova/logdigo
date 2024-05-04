@@ -20,5 +20,12 @@ impl AppBrain for Digolog {
             color: [140, 100, 200, 0].into(),
         }
         .build(ui);
+
+        ui::WireBuilder {
+            position_a: [0, 0].into(),
+            position_b: [10, 20].into(),
+            color: [140, 200, 100, 0].into(),
+        }
+        .build(ui);
     }
 }

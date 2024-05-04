@@ -1,13 +1,17 @@
 use bytemuck::NoUninit;
+use wgpu::BufferAddress;
 
 use crate::*;
-use std::{mem::size_of, ops::Range};
+use std::{
+    mem::size_of,
+    ops::{Range, RangeBounds},
+};
 
 pub type InstanceId = u32;
 
 pub struct InstanceBuffer<T: NoUninit> {
     instances: IdVec<T>,
-    pub gpu_buffer: wgpu::Buffer,
+    gpu_buffer: wgpu::Buffer,
 }
 
 impl<T: NoUninit> InstanceBuffer<T> {
@@ -43,6 +47,10 @@ impl<T: NoUninit> InstanceBuffer<T> {
             );
             buffer_view.copy_from_slice(updated_bytes);
         }
+    }
+
+    pub fn slice(&self, bounds: impl RangeBounds<BufferAddress>) -> wgpu::BufferSlice {
+        self.gpu_buffer.slice(bounds)
     }
 
     pub fn remove(&mut self, id: InstanceId) {

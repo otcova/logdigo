@@ -1,11 +1,14 @@
 mod block;
+mod wire;
 
 use crate::*;
 use block::*;
+use wire::*;
 
 pub struct Painters {
     pub main_camera: Camera2dBuffer,
     pub block: BlockPainter,
+    pub wire: WirePainter,
     old_id: ObjectId,
 }
 
@@ -14,6 +17,7 @@ impl Painters {
         Self {
             main_camera: Camera2dBuffer::new(renderer),
             block: BlockPainter::new(renderer),
+            wire: WirePainter::new(renderer),
             old_id: 0,
         }
     }
@@ -30,10 +34,12 @@ impl Painters {
     pub fn render(&mut self, encoder: &mut RendererEncoder, renderer: &mut Renderer) {
         self.main_camera.update_buffer(encoder, renderer);
         self.block.update_buffers(encoder, renderer);
+        self.wire.update_buffers(encoder, renderer);
 
         let mut surface = encoder.surface_texture_target();
         let mut pass = surface.render_pass();
 
         self.block.render(&mut pass, renderer, &self.main_camera);
+        self.wire.render(&mut pass, renderer, &self.main_camera);
     }
 }

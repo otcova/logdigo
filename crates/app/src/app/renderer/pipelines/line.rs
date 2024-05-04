@@ -5,34 +5,30 @@ use std::{mem::size_of, ops::Range};
 use wgpu::util::DeviceExt;
 
 #[derive(Deref)]
-pub struct RectPipeline {
+pub struct LinePipeline {
     pipeline: wgpu::RenderPipeline,
 }
 
-pub struct RectsBatch {
-    instances: InstanceBuffer<RectInstance>,
-    // rects: Vec<ObjectId>,
-    // instances: Vec<RectInstance>,
-    // buffer: wgpu::Buffer,
-    // updated_range: Range<usize>,
+pub struct LinesBatch {
+    instances: InstanceBuffer<LineInstance>,
     render_bundle: Option<wgpu::RenderBundle>,
 }
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
-pub struct RectInstance {
-    pub position: f32x2,
-    pub size: u16x2,
+pub struct LineInstance {
+    pub position_a: [f32; 2],
+    pub position_b: [f32; 2],
     pub color: u8x4,
 }
 
-impl RectPipeline {
+impl LinePipeline {
     pub fn new(
         device: &wgpu::Device,
         surface_config: &wgpu::SurfaceConfiguration,
         bind_group_layouts: &BindGroupLayouts,
     ) -> Self {
-        let shader = device.create_shader_module(wgpu::include_wgsl!("rect.wgsl"));
+        let shader = device.create_shader_module(wgpu::include_wgsl!("line.wgsl"));
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
@@ -40,12 +36,12 @@ impl RectPipeline {
                 push_constant_ranges: &[],
             });
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("RectRenderer pipeline"),
+            label: Some("LineRenderer pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "vs_main",
-                buffers: &[RectInstance::layout()],
+                buffers: &[LineInstance::layout()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -78,14 +74,8 @@ impl RectPipeline {
     }
 }
 
-impl RectsBatch {
+impl LinesBatch {
     pub fn new(renderer: &Renderer) -> Self {
-        let buffer = renderer.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("RectsBatch Buffer"),
-            size: 256, // TODO: Do not hardcode the initial size
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
         Self {
             instances: InstanceBuffer::new(renderer),
             render_bundle: None,
@@ -105,39 +95,39 @@ impl RectsBatch {
         let render_bundle = self.render_bundle.get_or_insert_with(|| {
             let mut enc = renderer.device.create_render_bundle_encoder(
                 &wgpu::RenderBundleEncoderDescriptor {
-                    label: Some("Rect"),
+                    label: Some("Line"),
                     multiview: None,
                     sample_count: 1,
                     color_formats: &[Some(renderer.surface_config.format)],
                     depth_stencil: None,
                 },
             );
-            enc.set_pipeline(&*renderer.pipelines.rect);
+            enc.set_pipeline(&*renderer.pipelines.line);
             enc.set_bind_group(0, &camera.bind_group, &[]);
-            let bytes = size_of::<RectInstance>() * self.instances.len();
+            let bytes = size_of::<LineInstance>() * self.instances.len();
             enc.set_vertex_buffer(0, self.instances.slice(0..bytes as u64));
             enc.draw(0..4, 0..self.instances.len() as u32);
 
             enc.finish(&wgpu::RenderBundleDescriptor {
-                label: Some("Rect"),
+                label: Some("Line"),
             })
         });
 
         render_pass.execute_bundles([&*render_bundle]);
     }
 
-    pub fn push(&mut self, rect: RectInstance) -> InstanceId {
-        self.instances.push(rect)
+    pub fn push(&mut self, line: LineInstance) -> InstanceId {
+        self.instances.push(line)
     }
 }
 
-impl RectInstance {
+impl LineInstance {
     const ATTRIBUTES: &'static [wgpu::VertexAttribute] =
-        &wgpu::vertex_attr_array![0 => Float32x2, 1 => Uint16x2, 2 => Unorm8x4];
+        &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2, 2 => Unorm8x4];
 
     const fn layout() -> wgpu::VertexBufferLayout<'static> {
         wgpu::VertexBufferLayout {
-            array_stride: size_of::<RectInstance>() as wgpu::BufferAddress,
+            array_stride: size_of::<LineInstance>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Instance,
             attributes: Self::ATTRIBUTES,
         }

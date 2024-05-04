@@ -1,6 +1,6 @@
 struct InstanceInput {
-    @location(0) position: vec2<f32>,
-    @location(1) size: vec2<u32>,
+    @location(0) position_a: vec2<f32>,
+    @location(1) position_b: vec2<f32>,
     @location(2) color: vec4<f32>,
 };
 
@@ -22,10 +22,14 @@ fn vs_main(
     @builtin(vertex_index) vertex_index: u32,
     instance: InstanceInput
 ) -> VertexOutput {
+    let half_width = 0.2;
 
-    let x = select(0., f32(instance.size.x), bool(vertex_index & 1u));
-    let y = select(0., f32(instance.size.y), bool(vertex_index & 2u));
-    let vertex_pos = vec2(x, y) + instance.position;
+    let vector = instance.position_b - instance.position_a;
+    let width_vector = normalize(vec2(-vector.y, vector.x)) * half_width;
+
+    let line_vec = select(vec2(0.), vector, bool(vertex_index & 1u));
+    let width_vec = select(-width_vector, width_vector, bool(vertex_index & 2u));
+    let vertex_pos = instance.position_a + width_vec + line_vec;
 
     var out: VertexOutput;
     let view_pos = (vertex_pos - camera.center) * camera.scale;
