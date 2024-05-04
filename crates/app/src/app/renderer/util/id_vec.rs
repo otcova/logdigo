@@ -1,4 +1,25 @@
-use std::num::NonZeroU32;
+use std::{num::NonZeroU32, ops::Range};
+
+/// A contiguous growable array type. It assigns to each element
+/// reusable ids that do not change on any `IdVec` operations.
+#[derive(Debug)]
+pub struct IdVec<T> {
+    elements: Vec<T>,
+    /// Relation [element index] => id
+    elements_ids: Vec<Id>,
+
+    /// Relation [id] => element index
+    /// Also:    [unused id] => other unused id
+    ids_indexes: Vec<PackedIdEntry>,
+
+    /// It is the most recently used vacant id.
+    /// Using the most recently used should be more cache friendly.
+    first_vacant_id: Option<Id>,
+
+    /// Smallest range that contains all the updated elements
+    /// from the last call of `reset_updated_range`.
+    updated_range: Range<usize>,
+}
 
 type Id = u32;
 
@@ -54,30 +75,14 @@ impl From<PackedIdEntry> for IdEntry {
     }
 }
 
-/// Gives each element of a vector an id.
-/// It is guarenteed that removing and pushing elements won't change already given ids.
-#[derive(Debug)]
-struct IdVec<T: Clone> {
-    elements: Vec<T>,
-    /// Relation [element index] => id
-    elements_ids: Vec<Id>,
-
-    /// Relation [id] => element index
-    /// Also:    [unused id] => other unused id
-    ids_indexes: Vec<PackedIdEntry>,
-
-    /// It is the most recently used vacant id.
-    /// Using the most recently used should be more cache friendly.
-    first_vacant_id: Option<Id>,
-}
-
-impl<T: Clone> IdVec<T> {
+impl<T> IdVec<T> {
     pub fn new() -> Self {
         Self {
             ids_indexes: vec![],
             elements_ids: vec![],
             elements: vec![],
             first_vacant_id: None,
+            updated_range: 0..0,
         }
     }
 
@@ -109,6 +114,7 @@ impl<T: Clone> IdVec<T> {
 
         self.elements_ids.push(element_id);
         self.elements.push(element);
+        self.set_updated(element_index);
 
         element_id
     }
@@ -122,7 +128,10 @@ impl<T: Clone> IdVec<T> {
 
     pub fn get_mut(&mut self, element_id: Id) -> Option<&mut T> {
         match (*self.ids_indexes.get(element_id as usize)?).into() {
-            IdEntry::Occupied { element_index } => Some(&mut self.elements[element_index]),
+            IdEntry::Occupied { element_index } => {
+                self.set_updated(element_index);
+                Some(&mut self.elements[element_index])
+            }
             IdEntry::Vacant { .. } => None,
         }
     }
@@ -141,6 +150,7 @@ impl<T: Clone> IdVec<T> {
                 // Delete
                 self.elements.swap_remove(element_index);
                 self.elements_ids.swap_remove(element_index);
+                self.set_updated(element_index);
                 self.ids_indexes[element_id as usize] = IdEntry::Vacant { next_vacant_id }.into();
 
                 // Replace
@@ -150,6 +160,32 @@ impl<T: Clone> IdVec<T> {
                 }
             }
             IdEntry::Vacant { .. } => {}
+        }
+    }
+
+    /// This function should be called every time `elements` is mutated.
+    fn set_updated(&mut self, index: usize) {
+        if index < self.len() {
+            if self.updated_range.is_empty() {
+                self.updated_range = index..index + 1;
+            } else if index < self.updated_range.start {
+                self.updated_range.start = index;
+            } else if self.updated_range.end < index {
+                self.updated_range.end = index;
+            }
+        }
+    }
+
+    pub fn reset_updated_range(&mut self) -> Range<usize> {
+        let range = self.updated_range.clone();
+        self.updated_range = 0..0;
+
+        if self.len() <= range.start {
+            0..0
+        } else if range.end <= self.len() {
+            range.start..self.len()
+        } else {
+            range
         }
     }
 

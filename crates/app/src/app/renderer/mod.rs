@@ -1,8 +1,10 @@
 mod bind_groups;
 mod camera2d;
 mod pipelines;
+mod util;
 
 use crate::*;
+use derive_more::*;
 use std::{iter, sync::Arc};
 use wgpu::util::StagingBelt;
 use winit::window::Window;
@@ -10,6 +12,7 @@ use winit::window::Window;
 pub use bind_groups::*;
 pub use camera2d::*;
 pub use pipelines::*;
+pub use util::*;
 
 /// Responsible to interact with wgpu
 /// It's a specialized wgpu abstraction layer
@@ -24,7 +27,10 @@ pub struct Renderer {
     pub staging_belt: wgpu::util::StagingBelt,
 }
 
+#[derive(Deref, DerefMut)]
 pub struct RendererEncoder {
+    #[deref]
+    #[deref_mut]
     encoder: wgpu::CommandEncoder,
     output: wgpu::SurfaceTexture,
 }

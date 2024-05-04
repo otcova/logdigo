@@ -28,7 +28,6 @@ mod manifest;
 mod module;
 
 use digolog_math::*;
-use std::simd::*;
 
 pub use manifest::*;
 pub use module::*;

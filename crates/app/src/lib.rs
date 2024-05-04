@@ -6,6 +6,8 @@
 //!
 //! # Expected use case
 //! ```
+//! use digolog_app::*;
+//!
 //! fn main() {
 //!     run_app(Digolog::setup());
 //! }
@@ -15,6 +17,7 @@
 //! impl Digolog {
 //!     async fn setup() -> Self {
 //!         // Load App data in parallel of the window opening.
+//!         Digolog { /* data */ }
 //!     }
 //! }
 //!
@@ -45,8 +48,6 @@ use app::*;
 use app_handle::*;
 use async_std::task;
 use std::future::Future;
-use std::simd::num::*;
-use std::simd::*;
 use winit::event_loop::EventLoop;
 
 pub use app::ui;
