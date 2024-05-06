@@ -8,7 +8,8 @@ use ui::*;
 use winit::{
     event::{ElementState, KeyEvent, WindowEvent},
     event_loop::ActiveEventLoop,
-    keyboard::{Key, NamedKey},
+    keyboard::{Key, ModifiersKeyState, NamedKey},
+    platform::modifier_supplement::KeyEventExtModifierSupplement,
     window::Window,
 };
 
@@ -43,20 +44,13 @@ impl<B: AppBrain> App<B> {
                 let new_size: [u32; 2] = new_size.into();
                 self.ui.resize(new_size.into());
             }
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        logical_key: key,
-                        state: ElementState::Pressed,
-                        ..
-                    },
-                ..
-            } => match key.as_ref() {
-                Key::Named(NamedKey::Escape) => {
+            WindowEvent::KeyboardInput { event, .. } if event.state == ElementState::Pressed => {
+                let key = event.key_without_modifiers();
+
+                if key == Key::Named(NamedKey::Escape) {
                     event_loop.exit();
                 }
-                _ => (),
-            },
+            }
             WindowEvent::RedrawRequested => {
                 self.ui.render();
             }

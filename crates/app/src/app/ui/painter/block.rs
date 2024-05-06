@@ -16,21 +16,20 @@ impl BlockPainter {
     pub fn new(renderer: &Renderer) -> Self {
         Self {
             indexes: HashMap::new(),
-            rects: RectsBatch::new(&renderer),
+            rects: RectsBatch::new(renderer),
         }
     }
 
-    pub fn update_buffers(&mut self, encoder: &mut RendererEncoder, renderer: &mut Renderer) {
-        self.rects.update_buffers(encoder, renderer);
+    pub fn update_buffers(&mut self, renderer: &mut Renderer) {
+        self.rects.update_buffers(renderer);
     }
 
-    pub fn render<'a>(
-        &'a mut self,
-        render_pass: &mut RenderPass<'a>,
+    pub fn bundle_render<'a>(
+        &'a self,
+        bundle: &mut RenderBundleEncoder<'a>,
         renderer: &'a Renderer,
-        camera: &'a Camera2dBuffer,
     ) {
-        self.rects.render(render_pass, renderer, camera);
+        self.rects.bundle_render(bundle, renderer);
     }
 
     pub fn insert(&mut self, id: ObjectId, block: BlockBuilder) {

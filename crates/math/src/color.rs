@@ -48,8 +48,8 @@ impl Color {
 
 impl From<&str> for Color {
     fn from(color: &str) -> Color {
-        if color.starts_with('#') {
-            Color::from_hex(&color[1..])
+        if let Some(hex_code) = color.strip_prefix('#') {
+            Color::from_hex(hex_code)
         } else {
             match color {
                 "white" => [255, 0, 0, 255],

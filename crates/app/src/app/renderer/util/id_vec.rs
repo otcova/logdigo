@@ -205,24 +205,24 @@ mod tests {
         assert!(v.push('a') == 1);
         assert!(v.push('b') == 2);
 
-        assert!(v.as_slice() == &['a', 'a', 'b']);
+        assert!(v.as_slice() == ['a', 'a', 'b']);
 
         v.remove(0);
 
         println!("{:?}", v);
-        assert!(v.as_slice() == &['b', 'a']);
-        assert!(v.get(0) == None);
+        assert!(v.as_slice() == ['b', 'a']);
+        assert!(v.get(0).is_none());
         assert!(v.get(1) == Some(&'a'));
         assert!(v.get(2) == Some(&'b'));
-        assert!(v.get(3) == None);
+        assert!(v.get(3).is_none());
 
         assert!(v.push('c') == 0);
 
-        assert!(v.as_slice() == &['b', 'a', 'c']);
+        assert!(v.as_slice() == ['b', 'a', 'c']);
         assert!(v.get_mut(0) == Some(&mut 'c'));
         assert!(v.get_mut(1) == Some(&mut 'a'));
         assert!(v.get_mut(2) == Some(&mut 'b'));
-        assert!(v.get_mut(3) == None);
+        assert!(v.get_mut(3).is_none());
 
         assert!(v.len() == 3);
 

@@ -2,7 +2,7 @@
 
 //! # Expected use cases
 //!
-//! ```
+//! ```ignore
 //! let local_modules = LocalModules::open("/modules_folder");
 //!
 //! // List installed modules

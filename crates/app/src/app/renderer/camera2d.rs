@@ -20,7 +20,7 @@ pub struct Camera2d {
     scale: f32,
 }
 
-#[derive(Deref)]
+#[derive(Deref, Debug)]
 pub struct Camera2dBuffer {
     buffer: wgpu::Buffer,
     surface_pixels: u32x2,
@@ -69,18 +69,22 @@ impl Camera2dBuffer {
         }
     }
 
-    pub fn update_buffer(&mut self, encoder: &mut RendererEncoder, renderer: &mut Renderer) {
+    pub fn update_buffer(&mut self, renderer: &mut Renderer) {
         if self.changed {
             self.changed = false;
 
             let size = Camera2dUniform::SIZE;
-            let encoder = &mut encoder.encoder;
+            let cmd = &mut renderer.commands;
             let belt = &mut renderer.staging_belt;
-            let mut view = belt.write_buffer(encoder, &self.buffer, 0, size, &renderer.device);
+            let mut view = belt.write_buffer(cmd, &self.buffer, 0, size, &renderer.device);
 
             let uniform = Camera2dUniform::from_camera(**self, self.surface_pixels.cast());
             view.copy_from_slice(bytemuck::bytes_of(&uniform));
         }
+    }
+
+    pub fn bundle_render<'a>(&'a self, bundle: &mut RenderBundleEncoder<'a>) {
+        bundle.set_bind_group(0, &self.bind_group, &[]);
     }
 }
 

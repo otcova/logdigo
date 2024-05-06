@@ -22,9 +22,7 @@ impl UI {
     }
 
     pub(crate) fn render(&mut self) {
-        let mut encoder = self.renderer.create_encoder();
-        self.painters.render(&mut encoder, &mut self.renderer);
-        self.renderer.submit_render(encoder);
+        self.painters.render(&mut self.renderer);
     }
     pub(crate) fn resize(&mut self, new_size: u32x2) {
         if self.renderer.resize(new_size) {

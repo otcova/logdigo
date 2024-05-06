@@ -13,7 +13,7 @@ pub struct ModuleSummary {
 }
 
 impl LocalModules {
-    pub fn load(modules_folder: PathBuf) -> Self {
+    pub fn open(modules_folder: PathBuf) -> Self {
         Self { modules_folder }
     }
 

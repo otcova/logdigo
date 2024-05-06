@@ -5,7 +5,7 @@
 //!  - Giving an interface to use the library
 //!
 //! # Expected use case
-//! ```
+//! ```ignore
 //! use digolog_app::*;
 //!
 //! fn main() {

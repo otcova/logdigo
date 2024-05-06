@@ -4,9 +4,8 @@
 //!
 //! # Expected use cases:
 //! ```
+//! use digolog_logic::*;
 //! let logic = AppLogic::open("/digolog_folder");
-//!
-//!
 //! ```
 
 #![allow(unused)]

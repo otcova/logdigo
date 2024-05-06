@@ -25,20 +25,14 @@ pub struct Renderer {
     pub pipelines: Pipelines,
     pub bind_group_layouts: BindGroupLayouts,
     pub staging_belt: wgpu::util::StagingBelt,
+    commands: wgpu::CommandEncoder,
 }
 
-#[derive(Deref, DerefMut)]
-pub struct RendererEncoder {
-    #[deref]
-    #[deref_mut]
-    encoder: wgpu::CommandEncoder,
-    output: wgpu::SurfaceTexture,
+pub struct RenderPhase {
+    bundle: wgpu::RenderBundle,
 }
 
-pub struct RendererTexture<'a> {
-    view: wgpu::TextureView,
-    encoder: &'a mut wgpu::CommandEncoder,
-}
+pub use wgpu::RenderBundleEncoder;
 
 pub type RenderPass<'a> = wgpu::RenderPass<'a>;
 
@@ -99,6 +93,9 @@ impl Renderer {
 
         let staging_belt = StagingBelt::new(1 << 10); // TODO: Check this constant
 
+        let commands = device.create_command_encoder(&Default::default());
+        let output_surface = surface.get_current_texture().unwrap();
+
         Self {
             device,
             surface_config,
@@ -108,6 +105,7 @@ impl Renderer {
             pipelines,
             staging_belt,
             bind_group_layouts,
+            commands,
         }
     }
 
@@ -122,60 +120,69 @@ impl Renderer {
             self.surface_config.height = new_size[1];
             self.surface.configure(&self.device, &self.surface_config);
             self.window.request_redraw();
+
             true
         } else {
             false
         }
     }
 
-    pub fn create_encoder(&mut self) -> RendererEncoder {
-        RendererEncoder {
-            output: self.surface.get_current_texture().unwrap(),
-            encoder: self.device.create_command_encoder(&Default::default()),
-        }
-    }
+    pub fn render<'a>(&mut self, phases: impl IntoIterator<Item = &'a RenderPhase>) {
+        let output_surface = self.surface.get_current_texture().unwrap();
+        let output_texture = output_surface.texture.create_view(&Default::default());
 
-    pub fn submit_render(&mut self, encoder: RendererEncoder) {
+        {
+            let mut render_pass = self
+                .commands
+                .begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("Main Render Pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &output_texture,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
+                });
+
+            for phase in phases {
+                render_pass.execute_bundles([&phase.bundle]);
+            }
+        }
+
+        let new_commands = self.device.create_command_encoder(&Default::default());
+        let commands = std::mem::replace(&mut self.commands, new_commands);
+
         self.staging_belt.finish();
-        self.queue.submit([encoder.encoder.finish()]);
+        self.queue.submit([commands.finish()]);
         self.staging_belt.recall();
 
         self.window.pre_present_notify();
-        encoder.output.present();
+        output_surface.present();
     }
-}
 
-impl RendererEncoder {
-    pub fn surface_texture_target(&mut self) -> RendererTexture {
-        let view = self
-            .output
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
+    pub fn create_phase<'a, F>(&'a self, add_render_steps: F) -> RenderPhase
+    where
+        F: FnOnce(&mut RenderBundleEncoder<'a>),
+    {
+        let mut bundle =
+            self.device
+                .create_render_bundle_encoder(&wgpu::RenderBundleEncoderDescriptor {
+                    label: None,
+                    multiview: None,
+                    sample_count: 1,
+                    color_formats: &[Some(self.surface_config.format)],
+                    depth_stencil: None,
+                });
 
-        RendererTexture {
-            view,
-            encoder: &mut self.encoder,
+        add_render_steps(&mut bundle);
+
+        RenderPhase {
+            bundle: bundle.finish(&Default::default()),
         }
-    }
-}
-
-impl<'a> RendererTexture<'a> {
-    pub fn render_pass(&mut self) -> wgpu::RenderPass {
-        let render_pass = self.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("Main Render Pass"),
-            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &self.view,
-                resolve_target: None,
-                ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                    store: wgpu::StoreOp::Store,
-                },
-            })],
-            depth_stencil_attachment: None,
-            occlusion_query_set: None,
-            timestamp_writes: None,
-        });
-
-        render_pass
     }
 }

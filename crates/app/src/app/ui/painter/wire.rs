@@ -16,21 +16,20 @@ impl WirePainter {
     pub fn new(renderer: &Renderer) -> Self {
         Self {
             indexes: HashMap::new(),
-            lines: LinesBatch::new(&renderer),
+            lines: LinesBatch::new(renderer),
         }
     }
 
-    pub fn update_buffers(&mut self, encoder: &mut RendererEncoder, renderer: &mut Renderer) {
-        self.lines.update_buffers(encoder, renderer);
+    pub fn update_buffers(&mut self, renderer: &mut Renderer) {
+        self.lines.update_buffers(renderer);
     }
 
-    pub fn render<'a>(
-        &'a mut self,
-        render_pass: &mut RenderPass<'a>,
+    pub fn bundle_render<'a>(
+        &'a self,
+        bundle: &mut RenderBundleEncoder<'a>,
         renderer: &'a Renderer,
-        camera: &'a Camera2dBuffer,
     ) {
-        self.lines.render(render_pass, renderer, camera);
+        self.lines.bundle_render(bundle, renderer);
     }
 
     pub fn insert(&mut self, id: ObjectId, wire: WireBuilder) {

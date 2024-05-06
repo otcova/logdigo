@@ -82,38 +82,17 @@ impl LinesBatch {
         }
     }
 
-    pub fn update_buffers(&mut self, encoder: &mut RendererEncoder, renderer: &mut Renderer) {
-        self.instances.update_buffers(encoder, renderer);
+    pub fn update_buffers(&mut self, renderer: &mut Renderer) {
+        self.instances.update_buffers(renderer);
     }
 
-    pub fn render<'a>(
-        &'a mut self,
-        render_pass: &mut RenderPass<'a>,
+    pub fn bundle_render<'a>(
+        &'a self,
+        bundle: &mut RenderBundleEncoder<'a>,
         renderer: &'a Renderer,
-        camera: &'a Camera2dBuffer,
     ) {
-        let render_bundle = self.render_bundle.get_or_insert_with(|| {
-            let mut enc = renderer.device.create_render_bundle_encoder(
-                &wgpu::RenderBundleEncoderDescriptor {
-                    label: Some("Line"),
-                    multiview: None,
-                    sample_count: 1,
-                    color_formats: &[Some(renderer.surface_config.format)],
-                    depth_stencil: None,
-                },
-            );
-            enc.set_pipeline(&*renderer.pipelines.line);
-            enc.set_bind_group(0, &camera.bind_group, &[]);
-            let bytes = size_of::<LineInstance>() * self.instances.len();
-            enc.set_vertex_buffer(0, self.instances.slice(0..bytes as u64));
-            enc.draw(0..4, 0..self.instances.len() as u32);
-
-            enc.finish(&wgpu::RenderBundleDescriptor {
-                label: Some("Line"),
-            })
-        });
-
-        render_pass.execute_bundles([&*render_bundle]);
+        bundle.set_pipeline(&renderer.pipelines.line);
+        self.instances.bundle_render(bundle);
     }
 
     pub fn push(&mut self, line: LineInstance) -> InstanceId {
