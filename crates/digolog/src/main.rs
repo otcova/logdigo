@@ -14,12 +14,16 @@ impl Digolog {
 
 impl AppBrain for Digolog {
     fn init(&mut self, ui: &mut UI) {
-        ui::BlockBuilder {
-            position: [0, 0].into(),
-            size: [1, 3].into(),
-            color: [140, 100, 200, 0].into(),
+        for x in -10..10 {
+            for y in -10..10 {
+                ui::BlockBuilder {
+                    position: [2 * x, 4 * y].into(),
+                    size: [1, 3].into(),
+                    color: [140, 100, 200, 0].into(),
+                }
+                .build(ui);
+            }
         }
-        .build(ui);
 
         ui::WireBuilder {
             position_a: [0, 0].into(),

@@ -20,8 +20,8 @@ impl WirePainter {
         }
     }
 
-    pub fn update_buffers(&mut self, renderer: &mut Renderer) {
-        self.lines.update_buffers(renderer);
+    pub fn update_buffers(&mut self, renderer: &mut Renderer) -> BufferUpdateStatus {
+        self.lines.update_buffers(renderer)
     }
 
     pub fn bundle_render<'a>(

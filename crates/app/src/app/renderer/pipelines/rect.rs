@@ -88,8 +88,8 @@ impl RectsBatch {
         }
     }
 
-    pub fn update_buffers(&mut self, renderer: &mut Renderer) {
-        self.instances.update_buffers(renderer);
+    pub fn update_buffers(&mut self, renderer: &mut Renderer) -> BufferUpdateStatus {
+        self.instances.update_buffers(renderer)
     }
 
     pub fn bundle_render<'a>(

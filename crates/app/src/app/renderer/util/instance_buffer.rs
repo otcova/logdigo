@@ -17,11 +17,27 @@ pub struct InstanceBuffer<T: NoUninit> {
     past_instance_count: u32,
 }
 
+pub enum BufferUpdateStatus {
+    Done,
+    NeedsRebundle,
+}
+
+impl BufferUpdateStatus {
+    pub fn all_done(status: &[Self]) -> bool {
+        for s in status {
+            if !matches!(s, Self::Done) {
+                return false;
+            }
+        }
+        true
+    }
+}
+
 impl<T: NoUninit> InstanceBuffer<T> {
     pub fn new(renderer: &Renderer) -> Self {
         let instances_buffer = renderer.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("LinesBatch Instances Buffer"),
-            size: 256, // TODO: Do not hardcode the initial size
+            label: Some("Instance Buffer"),
+            size: 0,
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -36,7 +52,7 @@ impl<T: NoUninit> InstanceBuffer<T> {
         let draw_buffer = renderer
             .device
             .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("LinesBatch DrawArgs Buffer"),
+                label: Some("Instance Buffer DrawArgs"),
                 contents: indirect_args.as_bytes(),
                 usage: wgpu::BufferUsages::INDIRECT | wgpu::BufferUsages::COPY_DST,
             });
@@ -48,15 +64,24 @@ impl<T: NoUninit> InstanceBuffer<T> {
         }
     }
 
-    fn update_instance_buffer(&mut self, renderer: &mut Renderer) {
+    fn update_instance_buffer(&mut self, renderer: &mut Renderer) -> BufferUpdateStatus {
         let updated_range = self.instances.reset_updated_range();
         let updated_instances = &self.instances.as_slice()[updated_range.clone()];
         let updated_bytes: &[u8] = bytemuck::cast_slice(updated_instances);
 
         if let Some(size) = std::num::NonZeroU64::new(updated_bytes.len() as u64) {
             if self.instances_buffer.size() < size.into() {
-                todo!("Resize the buffer");
+                self.instances_buffer =
+                    renderer
+                        .device
+                        .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                            label: Some("Instance Buffer"),
+                            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                            contents: updated_bytes,
+                        });
+                return BufferUpdateStatus::NeedsRebundle;
             }
+
             let offset = (size_of::<T>() * updated_range.start) as wgpu::BufferAddress;
             let mut buffer_view = renderer.staging_belt.write_buffer(
                 &mut renderer.commands,
@@ -67,6 +92,8 @@ impl<T: NoUninit> InstanceBuffer<T> {
             );
             buffer_view.copy_from_slice(updated_bytes);
         }
+
+        BufferUpdateStatus::Done
     }
 
     fn update_draw_buffer(&mut self, renderer: &mut Renderer) {
@@ -84,9 +111,9 @@ impl<T: NoUninit> InstanceBuffer<T> {
         }
     }
 
-    pub fn update_buffers(&mut self, renderer: &mut Renderer) {
+    pub fn update_buffers(&mut self, renderer: &mut Renderer) -> BufferUpdateStatus {
         self.update_draw_buffer(renderer);
-        self.update_instance_buffer(renderer);
+        self.update_instance_buffer(renderer)
     }
 
     pub fn bundle_render<'a>(&'a self, bundle: &mut RenderBundleEncoder<'a>) {

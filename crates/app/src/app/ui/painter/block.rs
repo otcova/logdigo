@@ -20,8 +20,8 @@ impl BlockPainter {
         }
     }
 
-    pub fn update_buffers(&mut self, renderer: &mut Renderer) {
-        self.rects.update_buffers(renderer);
+    pub fn update_buffers(&mut self, renderer: &mut Renderer) -> BufferUpdateStatus {
+        self.rects.update_buffers(renderer)
     }
 
     pub fn bundle_render<'a>(
