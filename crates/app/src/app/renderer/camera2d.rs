@@ -9,7 +9,11 @@ pub struct Camera2dUniform {
     /// In word units
     center: f32x2,
     /// The amount of clipping units in a world unit
-    scale: f32x2,
+    clipping_scale: f32x2,
+    /// The amount of pixels in a world unit
+    pixel_scale: f32,
+
+    _padding: u32,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -34,7 +38,7 @@ impl Camera2dBuffer {
     pub fn new(renderer: &Renderer) -> Self {
         let camera = Camera2d {
             center: f32x2::splat(0.0),
-            scale: 20.,
+            scale: 40.,
         };
         let buffer = renderer.device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
@@ -99,7 +103,9 @@ impl Camera2dUniform {
     pub fn from_camera(camera: Camera2d, surface_pixels: f32x2) -> Self {
         Self {
             center: camera.center,
-            scale: f32x2::splat(camera.scale * 2.0) / surface_pixels,
+            clipping_scale: (f32x2::splat(camera.scale * 2.0) / surface_pixels),
+            pixel_scale: camera.scale,
+            _padding: 0,
         }
     }
 }
