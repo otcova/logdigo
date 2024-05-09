@@ -1,6 +1,7 @@
 mod bind_groups;
 mod camera2d;
 mod pipelines;
+mod texture;
 mod util;
 
 use crate::*;
@@ -12,6 +13,7 @@ use winit::window::Window;
 pub use bind_groups::*;
 pub use camera2d::*;
 pub use pipelines::*;
+pub use texture::*;
 pub use util::*;
 
 /// Responsible to interact with wgpu

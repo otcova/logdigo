@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 pub struct BlockPainter {
     indexes: HashMap<ObjectId, BlockObject>,
-    rects: RectsBatch,
+    rects: RoundRectsBatch,
 }
 
 struct BlockObject {
@@ -16,7 +16,7 @@ impl BlockPainter {
     pub fn new(renderer: &Renderer) -> Self {
         Self {
             indexes: HashMap::new(),
-            rects: RectsBatch::new(renderer),
+            rects: RoundRectsBatch::new(renderer),
         }
     }
 
@@ -33,7 +33,7 @@ impl BlockPainter {
     }
 
     pub fn insert(&mut self, id: ObjectId, block: BlockBuilder) {
-        let rect = self.rects.push(RectInstance {
+        let rect = self.rects.push(RoundRectInstance {
             position: block.position.cast(),
             size: block.size,
             color: *block.color,

@@ -5,46 +5,43 @@ use std::{mem::size_of, ops::Range};
 use wgpu::util::DeviceExt;
 
 #[derive(Deref)]
-pub struct RectPipeline {
+pub struct RoundRectPipeline {
     pipeline: wgpu::RenderPipeline,
 }
 
-pub struct RectsBatch {
-    instances: InstanceBuffer<RectInstance>,
+pub struct RoundRectsBatch {
+    instances: InstanceBuffer<RoundRectInstance>,
     render_bundle: Option<wgpu::RenderBundle>,
 }
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
-pub struct RectInstance {
-    pub position: [f32; 3],
-    pub color: u8x4,
+pub struct RoundRectInstance {
+    pub position: f32x2,
     pub size: u16x2,
+    pub color: u8x4,
 }
 
-impl RectPipeline {
+impl RoundRectPipeline {
     pub fn new(
         device: &wgpu::Device,
         surface_config: &wgpu::SurfaceConfiguration,
         bind_group_layouts: &BindGroupLayouts,
     ) -> Self {
-        let shader = device.create_shader_module(wgpu::include_wgsl!("rect.wgsl"));
+        let shader = device.create_shader_module(wgpu::include_wgsl!("round_rect.wgsl"));
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
-                bind_group_layouts: &[
-                    &bind_group_layouts.camera,
-                    &bind_group_layouts.render_texture,
-                ],
+                bind_group_layouts: &[&bind_group_layouts.camera],
                 push_constant_ranges: &[],
             });
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("RectRenderer pipeline"),
+            label: Some("RoundRectRenderer pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "vs_main",
-                buffers: &[RectInstance::layout()],
+                buffers: &[RoundRectInstance::layout()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -77,10 +74,10 @@ impl RectPipeline {
     }
 }
 
-impl RectsBatch {
+impl RoundRectsBatch {
     pub fn new(renderer: &Renderer) -> Self {
         let buffer = renderer.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("RectsBatch Buffer"),
+            label: Some("RoundRectsBatch Buffer"),
             size: 256, // TODO: Do not hardcode the initial size
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
@@ -100,22 +97,22 @@ impl RectsBatch {
         bundle: &mut RenderBundleEncoder<'a>,
         renderer: &'a Renderer,
     ) {
-        bundle.set_pipeline(&renderer.pipelines.rect);
+        bundle.set_pipeline(&renderer.pipelines.round_rect);
         self.instances.bundle_render(bundle);
     }
 
-    pub fn push(&mut self, rect: RectInstance) -> InstanceId {
+    pub fn push(&mut self, rect: RoundRectInstance) -> InstanceId {
         self.instances.push(rect)
     }
 }
 
-impl RectInstance {
+impl RoundRectInstance {
     const ATTRIBUTES: &'static [wgpu::VertexAttribute] =
-        &wgpu::vertex_attr_array![0 => Float32x3, 1 => Unorm8x4, 2 => Uint16x2];
+        &wgpu::vertex_attr_array![0 => Float32x2, 1 => Uint16x2, 2 => Unorm8x4];
 
     const fn layout() -> wgpu::VertexBufferLayout<'static> {
         wgpu::VertexBufferLayout {
-            array_stride: size_of::<RectInstance>() as wgpu::BufferAddress,
+            array_stride: size_of::<RoundRectInstance>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Instance,
             attributes: Self::ATTRIBUTES,
         }

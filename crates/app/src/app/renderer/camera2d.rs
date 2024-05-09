@@ -116,16 +116,14 @@ impl Camera2dUniform {
         // SAFETY: Camera2dUniform has size != 0
         unsafe { NonZero::new_unchecked(size_of::<Camera2dUniform>() as u64) };
 
-    pub const fn layout() -> wgpu::BindGroupLayoutEntry {
-        wgpu::BindGroupLayoutEntry {
-            binding: 0,
-            visibility: wgpu::ShaderStages::VERTEX,
-            ty: wgpu::BindingType::Buffer {
-                ty: wgpu::BufferBindingType::Uniform,
-                has_dynamic_offset: false,
-                min_binding_size: Some(Self::SIZE),
-            },
-            count: None,
-        }
-    }
+    pub const BIND_GROUP_LAYOUT: wgpu::BindGroupLayoutEntry = wgpu::BindGroupLayoutEntry {
+        binding: 0,
+        visibility: wgpu::ShaderStages::VERTEX,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Uniform,
+            has_dynamic_offset: false,
+            min_binding_size: Some(Self::SIZE),
+        },
+        count: None,
+    };
 }
