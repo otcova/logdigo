@@ -1,4 +1,4 @@
-use digolog_app::*;
+use digolog_window::*;
 
 fn main() {
     run_app(Digolog::setup());

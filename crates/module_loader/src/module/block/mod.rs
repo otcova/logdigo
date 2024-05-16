@@ -11,5 +11,5 @@ pub use block_shape::*;
 pub struct Block {
     // [Perfomance TODO] Share Block struct for multipl BlockPanel instances. (Change 'block' to be an index or a Rc<>)
     pub shape: BlockShape,
-    pub pos: i32x2,
+    pub pos: Vec2<i32>,
 }

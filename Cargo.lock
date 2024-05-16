@@ -501,20 +501,8 @@ name = "digolog"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "digolog_app",
  "digolog_logic",
-]
-
-[[package]]
-name = "digolog_app"
-version = "0.1.0"
-dependencies = [
- "async-std",
- "bytemuck",
- "derive_more",
- "digolog_math",
- "wgpu",
- "winit",
+ "digolog_window",
 ]
 
 [[package]]
@@ -541,6 +529,20 @@ dependencies = [
  "digolog_math",
  "serde",
  "toml",
+]
+
+[[package]]
+name = "digolog_window"
+version = "0.1.0"
+dependencies = [
+ "async-std",
+ "bytemuck",
+ "derive_more",
+ "digolog_math",
+ "guillotiere",
+ "smallvec 2.0.0-alpha.6",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]
@@ -578,6 +580,15 @@ checksum = "a258e46cdc063eb8519c00b9fc845fc47bcfca4130e2f08e88665ceda8474245"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "euclid"
+version = "0.22.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87f253bc5c813ca05792837a0ff4b3a580336b224512d48f7eda1d7dd9210787"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]
@@ -813,6 +824,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bf0b36e6f090b7e1d8a4b49c0cb81c1f8376f72198c65dd3ad9ff3556b8b78c"
 dependencies = [
  "bitflags 2.5.0",
+]
+
+[[package]]
+name = "guillotiere"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b62d5865c036cb1393e23c50693df631d3f5d7bcca4c04fe4cc0fd592e74a782"
+dependencies = [
+ "euclid",
+ "svg_fmt",
 ]
 
 [[package]]
@@ -1250,7 +1271,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "redox_syscall 0.5.1",
- "smallvec",
+ "smallvec 1.13.2",
  "windows-targets 0.52.5",
 ]
 
@@ -1526,6 +1547,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
+name = "smallvec"
+version = "2.0.0-alpha.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66778689f64ae4f4e9365890e55048783afc0bb07a8e214b0bcfe7b88e6bb2bf"
+
+[[package]]
 name = "smol_str"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1558,6 +1585,12 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "svg_fmt"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f83ba502a3265efb76efb89b0a2f7782ad6f2675015d4ce37e4b547dda42b499"
 
 [[package]]
 name = "syn"
@@ -1823,7 +1856,7 @@ dependencies = [
  "parking_lot",
  "profiling",
  "raw-window-handle",
- "smallvec",
+ "smallvec 1.13.2",
  "static_assertions",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -1852,7 +1885,7 @@ dependencies = [
  "profiling",
  "raw-window-handle",
  "rustc-hash",
- "smallvec",
+ "smallvec 1.13.2",
  "thiserror",
  "web-sys",
  "wgpu-hal",
@@ -1892,7 +1925,7 @@ dependencies = [
  "raw-window-handle",
  "renderdoc-sys",
  "rustc-hash",
- "smallvec",
+ "smallvec 1.13.2",
  "thiserror",
  "wasm-bindgen",
  "web-sys",

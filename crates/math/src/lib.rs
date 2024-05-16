@@ -1,7 +1,7 @@
-#![feature(portable_simd)]
-
 mod color;
+mod rect;
+mod vec;
 
 pub use color::*;
-pub use std::simd::num::*;
-pub use std::simd::*;
+pub use rect::*;
+pub use vec::*;
