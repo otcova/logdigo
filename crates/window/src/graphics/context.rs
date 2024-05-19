@@ -1,6 +1,6 @@
+use self::models::BindGroupLayouts;
 use super::*;
 use derive_more::*;
-use wgpu::util::StagingBelt;
 
 #[derive(Deref)]
 pub struct WgpuContext(Arc<InnerWgpuContext>);
@@ -11,6 +11,7 @@ pub struct InnerWgpuContext {
     pub surface_format: wgpu::TextureFormat,
     pub surface: wgpu::Surface<'static>,
     pub queue: wgpu::Queue,
+    pub bind_group_layouts: BindGroupLayouts,
 }
 
 impl WgpuContext {
@@ -56,12 +57,15 @@ impl WgpuContext {
         let surface_config = InnerWgpuContext::create_surface_config(size, surface_format);
         surface.configure(&device, &surface_config);
 
+        let bind_group_layouts = BindGroupLayouts::new(&device);
+
         Self(Arc::new(InnerWgpuContext {
             window,
             device,
             surface_format,
             surface,
             queue,
+            bind_group_layouts,
         }))
     }
 }

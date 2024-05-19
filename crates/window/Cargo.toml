@@ -20,6 +20,7 @@ features = ["derive"]
 [dependencies]
 async-std = "1.12"
 derive_more = "0.99.17"
-digolog_math.path = "../math"
 guillotiere = "0.6.2"
 smallvec = "2.0.0-alpha"
+digolog_math.path = "../math"
+digolog_module_loader.path = "../module_loader"

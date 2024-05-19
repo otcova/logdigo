@@ -1,3 +1,4 @@
+use bytemuck::{Pod, Zeroable};
 use digolog_math::*;
 use guillotiere::{Allocation, AtlasAllocator, Size};
 use wgpu::Extent3d;
@@ -6,20 +7,27 @@ pub struct Atlas3d {
     /// All the layers of the atlas. Bigger and less layers are priorized.
     atlas: Vec<AtlasAllocator>,
     /// Max width(x), height(y) and depth(z) of the textures
-    max_dimension_size: u32,
+    max_dimension_size: u16,
 }
 
 pub struct AtlasHandle {
     allocation: Allocation,
-    layer: u32,
+    layer: u16,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Pod, Zeroable)]
+pub struct TextureRect {
+    pub rect: Rect<u16>,
+    pub layer: u16,
 }
 
 impl Atlas3d {
-    const MIN_SIZE: u32 = 256;
-    const MAX_SIZE: u32 = 1 << 24;
+    const MIN_SIZE: u16 = 256;
+    const MAX_SIZE: u16 = 1 << 15; // To prevent overflow when using u16
 
     /// max_dimension_size will be clamped with MIN_SIZE and MAX_SIZE
-    pub fn new(max_dimension_size: u32) -> Self {
+    pub fn new(max_dimension_size: u16) -> Self {
         let initial_size = Size::splat(Self::MIN_SIZE as i32);
         Self {
             atlas: vec![AtlasAllocator::new(initial_size)],
@@ -27,10 +35,10 @@ impl Atlas3d {
         }
     }
 
-    pub fn add(&mut self, size: Vec2<u32>) -> Option<AtlasHandle> {
+    pub fn add(&mut self, size: Vec2<u16>) -> Option<AtlasHandle> {
         let isize = Size::new(size.x as i32, size.y as i32);
 
-        for layer in 0..self.atlas.len() as u32 {
+        for layer in 0..self.atlas.len() as u16 {
             if let Some(allocation) = self.atlas[layer as usize].allocate(isize) {
                 return Some(AtlasHandle { allocation, layer });
             }
@@ -39,12 +47,12 @@ impl Atlas3d {
         None
     }
 
-    pub fn size(&self) -> Vec3<u32> {
+    pub fn size(&self) -> Vec3<u16> {
         let size = self.atlas[0].size();
         Vec3 {
-            x: size.width as u32,
-            y: size.height as u32,
-            z: self.atlas.len() as u32,
+            x: size.width as u16,
+            y: size.height as u16,
+            z: self.atlas.len() as u16,
         }
     }
 
@@ -53,7 +61,7 @@ impl Atlas3d {
     }
 
     /// Fast function that resizes the atlas.
-    pub fn grow(&mut self, min_size_increment: Vec2<u32>) {
+    pub fn grow(&mut self, min_size_increment: Vec2<u16>) {
         let new_size = self.next_size(min_size_increment);
         let atlas_size = Size::new(new_size.x as i32, new_size.y as i32);
 
@@ -68,7 +76,7 @@ impl Atlas3d {
     }
 
     /// Returns the next size after grow
-    fn next_size(&self, min_size_increment: Vec2<u32>) -> Vec3<u32> {
+    fn next_size(&self, min_size_increment: Vec2<u16>) -> Vec3<u16> {
         let current_size = self.size();
 
         let mut new_size = current_size.x;
@@ -96,18 +104,15 @@ impl Atlas3d {
 }
 
 impl AtlasHandle {
-    pub fn rect(&self) -> Rect<u32> {
+    pub fn rect(&self) -> TextureRect {
         let min = self.allocation.rectangle.min;
         let max = self.allocation.rectangle.max;
-        Rect {
-            min: Vec2 {
-                x: min.x as u32,
-                y: min.y as u32,
+        TextureRect {
+            rect: Rect {
+                min: Vec2::new(min.x as u16, min.y as u16),
+                max: Vec2::new(max.x as u16, max.y as u16),
             },
-            max: Vec2 {
-                x: max.x as u32,
-                y: max.y as u32,
-            },
+            layer: self.layer,
         }
     }
 }

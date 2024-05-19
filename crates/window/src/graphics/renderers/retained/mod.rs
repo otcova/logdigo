@@ -1,13 +1,12 @@
 mod retained_buffer;
 
-use super::Renderer;
 use crate::graphics::util::GPUBuffer;
 use crate::graphics::{models::*, WgpuContext};
 use retained_buffer::*;
 
-struct RetainedModel<M>
+pub struct RetainedModel<M>
 where
-    M: Model,
+    M: ModelPipeline,
     [(); M::Buffer::ARRAYS]: Sized,
 {
     buffer: RetainedInstanceBuffer<M>,
@@ -16,30 +15,32 @@ where
 
 impl<M> RetainedModel<M>
 where
-    M: Model,
+    M: ModelPipeline,
     [(); M::Buffer::ARRAYS]: Sized,
 {
-    pub fn add(&mut self, model: <M::Buffer as InstanceBuffer>::Instance) -> Handle {
+    pub fn new(context: &WgpuContext) -> Self {
+        Self {
+            buffer: RetainedInstanceBuffer::new(),
+            gpu_buffer: std::array::from_fn(|_| {
+                GPUBuffer::new(context, wgpu::BufferUsages::VERTEX)
+            }),
+        }
+    }
+    pub fn add(&mut self, model: <M::Buffer as InstanceBuffer>::Instance) -> Id {
         self.buffer.push(model)
     }
-    pub fn remove(&mut self, handle: Handle) {
+    pub fn remove(&mut self, handle: Id) {
         self.buffer.remove(handle)
     }
-}
 
-impl<M> Renderer for RetainedModel<M>
-where
-    M: Model,
-    [(); M::Buffer::ARRAYS]: Sized,
-{
-    fn prepare(&mut self, context: &WgpuContext) {
+    pub fn prepare(&mut self, context: &WgpuContext) {
         /// Upload all the modified arrays to the gpu
         for (array_i, modified) in self.buffer.modified_bytes().into_iter().enumerate() {
             self.gpu_buffer[array_i].upload_range(context, modified.offset, modified.data);
         }
     }
 
-    fn render<'a>(
+    pub fn render<'a>(
         &'a mut self,
         pass: &mut wgpu::RenderPass<'a>,
         context: &WgpuContext,

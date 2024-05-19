@@ -1,3 +1,4 @@
+use super::UI;
 use crate::*;
 
 pub trait AppBrain: Send + 'static {

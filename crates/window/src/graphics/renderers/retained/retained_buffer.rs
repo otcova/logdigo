@@ -5,7 +5,7 @@ use crate::graphics::models::*;
 use std::ops::Range;
 
 #[derive(Copy, Clone, Hash, PartialEq, Eq)]
-pub struct Handle {
+pub struct Id {
     id: u64,
 }
 
@@ -16,15 +16,15 @@ pub struct ModifiedBytes<'a> {
 
 pub struct RetainedInstanceBuffer<M>
 where
-    M: Model,
+    M: ModelPipeline,
     [(); M::Buffer::ARRAYS]: Sized,
 {
     instances: M::Buffer,
-    /// Relation: instance Handle -> elements indexes
-    indexes: FastHashMap<Handle, [SmallVec<Range<u32>, 1>; M::Buffer::ARRAYS]>,
-    bigger_handle_id: u64,
-    /// Relation: elements indexes -> instance Handle
-    handles: [Vec<Handle>; M::Buffer::ARRAYS],
+    /// Relation: instance Id -> elements indexes
+    indexes: FastHashMap<Id, [SmallVec<Range<u32>, 1>; M::Buffer::ARRAYS]>,
+    bigger_id: u64,
+    /// Relation: elements indexes -> instance Id
+    ids: [Vec<Id>; M::Buffer::ARRAYS],
 
     /// Range of elements that have changed and need to be uploaded to the gpu.
     modified_range: [Range<u32>; M::Buffer::ARRAYS],
@@ -32,43 +32,45 @@ where
 
 impl<M> RetainedInstanceBuffer<M>
 where
-    M: Model,
+    M: ModelPipeline,
     [(); M::Buffer::ARRAYS]: Sized,
 {
     pub fn new() -> Self {
         Self {
             instances: Default::default(),
             indexes: Default::default(),
-            bigger_handle_id: 0,
-            handles: std::array::from_fn(|_| vec![]),
+            bigger_id: 0,
+            ids: std::array::from_fn(|_| vec![]),
             modified_range: std::array::from_fn(|_| 0..0),
         }
     }
 
-    pub fn push(&mut self, instance: <M::Buffer as InstanceBuffer>::Instance) -> Handle {
-        let handle = self.new_handle();
+    pub fn push(&mut self, instance: <M::Buffer as InstanceBuffer>::Instance) -> Id {
+        let id = self.new_id();
 
         // Push instance
         let new_indexes = self.instances.push(instance);
 
-        for array_i in 0..new_indexes.len() {
-            // Update Relation `instance indexes -> Handle`
-            for _ in new_indexes[array_i].clone() {
-                self.handles[array_i].push(handle);
-            }
-
-            // Update Relation `instance indexes -> Handle`
+        // Update Modified Range
+        for (array_i, range) in new_indexes.iter().enumerate() {
+            self.set_modified_indexes(array_i as u32, range.clone());
         }
 
-        // Update Relation `Handle -> instance indexes`
-        // let new_indexes = new_indexes.map(|range| smallvec![range]);
-        let new_indexes = std::array::from_fn(|_| smallvec![]);
-        self.indexes.insert(handle, new_indexes);
+        // Update Relation `instance indexes -> Id`
+        for array_i in 0..new_indexes.len() {
+            for _ in new_indexes[array_i].clone() {
+                self.ids[array_i].push(id);
+            }
+        }
 
-        handle
+        // Update Relation `Id -> instance indexes`
+        let new_indexes = new_indexes.map(|i| smallvec![i]);
+        self.indexes.insert(id, new_indexes);
+
+        id
     }
 
-    pub fn remove(&mut self, handle: Handle) {
+    pub fn remove(&mut self, handle: Id) {
         let Some(indexes) = self.indexes.remove(&handle) else {
             // WARN: Removing invalid handle
             return;
@@ -77,7 +79,7 @@ where
         for array_i in 0..indexes.len() {
             for elements in indexes[array_i].clone() {
                 let range = elements.start as usize..elements.end as usize;
-                swap_drain(&mut self.handles[array_i], range);
+                swap_drain(&mut self.ids[array_i], range);
                 self.instances.swap_drain(array_i as u32, elements);
             }
         }
@@ -107,11 +109,9 @@ where
         *array_range = combine_range(array_range.clone(), updated);
     }
 
-    fn new_handle(&mut self) -> Handle {
-        self.bigger_handle_id += 1;
-        Handle {
-            id: self.bigger_handle_id,
-        }
+    fn new_id(&mut self) -> Id {
+        self.bigger_id += 1;
+        Id { id: self.bigger_id }
     }
 }
 

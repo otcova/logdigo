@@ -1,13 +1,34 @@
 mod camera;
+mod image;
 
 pub use camera::*;
+pub use image::*;
 
 use std::ops::{Range, RangeBounds};
 
-pub trait Model {
+pub struct BindGroupLayouts {
+    camera: wgpu::BindGroupLayout,
+    image: wgpu::BindGroupLayout,
+}
+
+impl BindGroupLayouts {
+    pub fn new(device: &wgpu::Device) -> Self {
+        BindGroupLayouts {
+            camera: camera::create_layout(device),
+            image: ImagePipeline::create_layout(device),
+        }
+    }
+}
+
+pub trait ModelPipeline {
     type Buffer: InstanceBuffer;
 
-    fn render(pass: &mut wgpu::RenderPass, slices: [wgpu::BufferSlice; Self::Buffer::ARRAYS]);
+    fn new(context: &WgpuContext) -> Self;
+    fn render(
+        &self,
+        pass: &mut wgpu::RenderPass,
+        slices: [wgpu::BufferSlice; Self::Buffer::ARRAYS],
+    );
 }
 
 pub trait InstanceBuffer: Default {
@@ -69,3 +90,41 @@ where
     // Step 2: Resize the vec
     v.truncate(final_len);
 }
+
+macro_rules! vec_instance_buffer {
+    (struct $Buffer:ident {
+        $vec:ident: Vec<$Instance:ident>,
+    }) => {
+        #[derive(Default)]
+        struct $Buffer {
+            $vec: Vec<$Instance>,
+        }
+
+        impl InstanceBuffer for $Buffer {
+            type Instance = $Instance;
+            const ARRAYS: usize = 1;
+
+            fn push(&mut self, instance: $Instance) -> [Range<u32>; 1] {
+                let index = self.$vec.len() as u32;
+                self.$vec.push(instance);
+                [index..index + 1]
+            }
+
+            fn swap_drain(&mut self, _: u32, range: Range<u32>) {
+                let range = range.start as usize..range.end as usize;
+                swap_drain(&mut self.$vec, range);
+            }
+
+            fn clear(&mut self) {
+                self.$vec.clear();
+            }
+
+            fn bytes_of(&self, array_index: u32) -> &[u8] {
+                bytemuck::cast_slice(&self.$vec)
+            }
+        }
+    };
+}
+use vec_instance_buffer;
+
+use super::WgpuContext;

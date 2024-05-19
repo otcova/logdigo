@@ -9,3 +9,6 @@ version = "0.99.17"
 [dependencies.bytemuck]
 version = "1.15.0"
 features = ["derive", "nightly_portable_simd"]
+
+[dependencies.num-traits]
+version = "0.2.19"

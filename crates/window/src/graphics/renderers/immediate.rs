@@ -1,12 +1,11 @@
 use std::ops::Range;
 
-use super::*;
-use crate::graphics::models::*;
 use crate::graphics::util::GPUBuffer;
+use crate::graphics::{models::*, WgpuContext};
 
-struct ImmediateModel<M>
+pub struct ImmediateModel<M>
 where
-    M: Model,
+    M: ModelPipeline,
     [(); M::Buffer::ARRAYS]: Sized,
 {
     buffer: M::Buffer,
@@ -16,7 +15,7 @@ where
 
 impl<M> ImmediateModel<M>
 where
-    M: Model,
+    M: ModelPipeline,
     [(); M::Buffer::ARRAYS]: Sized,
 {
     pub fn new(context: &WgpuContext) -> Self {
@@ -29,18 +28,12 @@ where
     pub fn add(&mut self, instance: <M::Buffer as InstanceBuffer>::Instance) {
         self.buffer.push(instance);
     }
-}
 
-impl<M> Renderer for ImmediateModel<M>
-where
-    M: Model,
-    [(); M::Buffer::ARRAYS]: Sized,
-{
-    fn prepare(&mut self, context: &WgpuContext) {
+    pub fn prepare(&mut self, context: &WgpuContext) {
         self.gpu_buffer.upload_slices(context, self.buffer.bytes());
     }
 
-    fn render<'a>(
+    pub fn render<'a>(
         &'a mut self,
         pass: &mut wgpu::RenderPass<'a>,
         context: &WgpuContext,

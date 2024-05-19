@@ -36,8 +36,8 @@
 //! }
 //! ```
 
-#![allow(unused)]
-#![feature(generic_const_exprs, slice_range)]
+#![allow(unused, incomplete_features)]
+#![feature(generic_nonzero, generic_const_exprs, slice_range)]
 
 mod app;
 mod app_handle;
