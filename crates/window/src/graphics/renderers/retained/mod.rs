@@ -4,6 +4,8 @@ use crate::graphics::util::GPUBuffer;
 use crate::graphics::{models::*, WgpuContext};
 use retained_buffer::*;
 
+pub use retained_buffer::Id;
+
 pub struct RetainedModel<M>
 where
     M: ModelPipeline,

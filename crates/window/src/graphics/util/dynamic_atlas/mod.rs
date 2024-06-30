@@ -1,35 +1,51 @@
 mod atlas3d;
 
-use self::atlas3d::Atlas3d;
+use self::atlas3d::{AllocId, Atlas3d};
+use super::GPUIdVec;
 use crate::graphics::WgpuContext;
-use digolog_math::{Rect, Vec2};
+use bytemuck::{Pod, Zeroable};
+use digolog_math::*;
 use guillotiere::{size2, Allocation, AtlasAllocator};
 use wgpu::Extent3d;
 
-pub use self::atlas3d::{AtlasHandle, TextureRect};
+pub use self::atlas3d::TextureRect;
 
 pub struct DynamicAtlas {
     atlas: Atlas3d,
-    texture: Option<wgpu::Texture>,
-    texture_view: Option<wgpu::TextureView>,
+    rects: GPUIdVec<TextureRect>,
+    texture: wgpu::Texture,
+    texture_view: wgpu::TextureView,
     /// Indicates if the atlas has been resized and the texture needs to be realocated.
     size_changed: bool,
+}
+
+pub struct AtlasRectId {
+    rect_id: u32,
+    atlas_id: AllocId,
 }
 
 impl DynamicAtlas {
     pub fn new(context: &WgpuContext) -> Self {
         let max_dimension_size = context.device.limits().max_texture_dimension_3d;
+        let atlas = Atlas3d::new(max_dimension_size.try_into().unwrap_or(u16::MAX));
+        let (texture, texture_view) = Self::create_texture(context, atlas.size());
+
         Self {
-            atlas: Atlas3d::new(max_dimension_size.try_into().unwrap_or(u16::MAX)),
-            texture: None,
-            texture_view: None,
-            size_changed: true,
+            atlas,
+            rects: GPUIdVec::new(&context, wgpu::BufferUsages::STORAGE),
+            texture,
+            texture_view,
+            size_changed: false,
         }
     }
 
-    pub fn add(&mut self, size: Vec2<u16>) -> AtlasHandle {
+    pub fn add(&mut self, size: Vec2<u16>) -> AtlasRectId {
         if let Some(handle) = self.atlas.add(size) {
-            handle
+            let rect_id = self.rects.add(handle.rect());
+            AtlasRectId {
+                rect_id,
+                atlas_id: handle.id(),
+            }
         } else {
             self.atlas.grow(size);
             self.size_changed = true;
@@ -37,30 +53,32 @@ impl DynamicAtlas {
         }
     }
 
-    pub fn remove(&mut self, handle: AtlasHandle) {
-        self.atlas.remove(handle);
+    pub fn remove(&mut self, handle: AtlasRectId) {
+        self.rects.remove(handle.rect_id);
+        self.atlas.remove(handle.atlas_id);
     }
 
     pub fn prepare(&mut self, context: &WgpuContext, cmd: &mut wgpu::CommandEncoder) {
         if self.size_changed {
-            self.create_texture(context, cmd);
+            self.grow_texture(context, cmd);
         };
+        self.rects.upload(context, cmd);
     }
 
-    fn create_texture(&mut self, context: &WgpuContext, cmd: &mut wgpu::CommandEncoder) {
-        self.size_changed = false;
-
-        let new_size = self.atlas.size();
-        let new_size = wgpu::Extent3d {
-            width: new_size.x as u32,
-            height: new_size.y as u32,
-            depth_or_array_layers: new_size.z as u32,
+    fn create_texture(
+        context: &WgpuContext,
+        size: Vec3<u16>,
+    ) -> (wgpu::Texture, wgpu::TextureView) {
+        let size = wgpu::Extent3d {
+            width: size.x as u32,
+            height: size.y as u32,
+            depth_or_array_layers: size.z as u32,
         };
 
         let texture = context.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("DynamicAtlas Texture"),
             dimension: wgpu::TextureDimension::D3,
-            size: new_size,
+            size,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
             format: context.surface_format,
             view_formats: &[context.surface_format],
@@ -73,33 +91,36 @@ impl DynamicAtlas {
             ..Default::default()
         });
 
-        /// Copy smaller previous texture data into new the texture
-        if let Some(old_texture) = &self.texture {
-            let old = wgpu::ImageCopyTexture {
-                texture: &old_texture,
-                origin: wgpu::Origin3d::ZERO,
-                aspect: wgpu::TextureAspect::All,
-                mip_level: 0,
-            };
-            let new = wgpu::ImageCopyTexture {
-                texture: &texture,
-                origin: wgpu::Origin3d::ZERO,
-                aspect: wgpu::TextureAspect::All,
-                mip_level: 0,
-            };
-            cmd.copy_texture_to_texture(old, new, old_texture.size());
-        }
-
-        self.texture = Some(texture);
-        self.texture_view = Some(texture_view);
+        (texture, texture_view)
     }
 
-    /// # Panic
-    /// `prepare()` must be called before `texture_view()`
-    pub fn texture_view(&self) -> &wgpu::TextureView {
-        let Some(texture_view) = &self.texture_view else {
-            panic!("prepare must be called before texture_view");
+    /// Creates a larger texture and copies the data from the old one.
+    fn grow_texture(&mut self, context: &WgpuContext, cmd: &mut wgpu::CommandEncoder) {
+        self.size_changed = false;
+
+        let new_size = self.atlas.size();
+        let (texture, texture_view) = Self::create_texture(context, new_size);
+
+        /// Copy smaller previous texture data into new the texture
+        let old = wgpu::ImageCopyTexture {
+            texture: &self.texture,
+            origin: wgpu::Origin3d::ZERO,
+            aspect: wgpu::TextureAspect::All,
+            mip_level: 0,
         };
-        texture_view
+        let new = wgpu::ImageCopyTexture {
+            texture: &texture,
+            origin: wgpu::Origin3d::ZERO,
+            aspect: wgpu::TextureAspect::All,
+            mip_level: 0,
+        };
+        cmd.copy_texture_to_texture(old, new, self.texture.size());
+
+        self.texture = texture;
+        self.texture_view = texture_view;
+    }
+
+    pub fn texture_view(&self) -> &wgpu::TextureView {
+        &self.texture_view
     }
 }

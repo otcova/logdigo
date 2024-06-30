@@ -1,10 +1,10 @@
+use crate::graphics::models::*;
+use derive_more::Deref;
 use smallvec::{smallvec, SmallVec};
+use std::ops::Range;
 use wgpu::naga::FastHashMap;
 
-use crate::graphics::models::*;
-use std::ops::Range;
-
-#[derive(Copy, Clone, Hash, PartialEq, Eq)]
+#[derive(Copy, Clone, Hash, PartialEq, Eq, Deref)]
 pub struct Id {
     id: u64,
 }

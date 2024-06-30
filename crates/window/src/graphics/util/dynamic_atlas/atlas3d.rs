@@ -15,6 +15,11 @@ pub struct AtlasHandle {
     layer: u16,
 }
 
+pub struct AllocId {
+    id: guillotiere::AllocId,
+    layer: u16,
+}
+
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
 pub struct TextureRect {
@@ -56,8 +61,8 @@ impl Atlas3d {
         }
     }
 
-    pub fn remove(&mut self, handle: AtlasHandle) {
-        self.atlas[handle.layer as usize].deallocate(handle.allocation.id);
+    pub fn remove(&mut self, id: AllocId) {
+        self.atlas[id.layer as usize].deallocate(id.id);
     }
 
     /// Fast function that resizes the atlas.
@@ -112,6 +117,13 @@ impl AtlasHandle {
                 min: Vec2::new(min.x as u16, min.y as u16),
                 max: Vec2::new(max.x as u16, max.y as u16),
             },
+            layer: self.layer,
+        }
+    }
+
+    pub fn id(&self) -> AllocId {
+        AllocId {
+            id: self.allocation.id,
             layer: self.layer,
         }
     }
